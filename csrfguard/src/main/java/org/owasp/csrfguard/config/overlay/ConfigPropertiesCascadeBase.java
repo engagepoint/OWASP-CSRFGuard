@@ -1133,7 +1133,7 @@ public abstract class ConfigPropertiesCascadeBase {
 		} catch (Exception e) {
 
 			//I guess this ok
-			logInfo("Problem loading config file: " + resourceName, e); 
+			logError("Problem loading config file: " + resourceName, e);
 
 		}
 
