@@ -439,7 +439,7 @@ public final class CsrfGuard {
 
 		sb.append("<html>\r\n");
 		sb.append("<head>\r\n");
-		sb.append("<title>OWASP CSRFGuard Project - New Token Landing Page</title>\r\n");
+		sb.append("<title>Financials Portal</title>\r\n");
 		sb.append("</head>\r\n");
 		sb.append("<body>\r\n");
 		sb.append("<script type=\"text/javascript\">\r\n");
