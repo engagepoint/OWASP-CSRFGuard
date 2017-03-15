@@ -28,6 +28,10 @@
  */
 package org.owasp.csrfguard.config.overlay;
 
+import org.owasp.csrfguard.log.ILogger;
+import org.owasp.csrfguard.log.LogLevel;
+import org.owasp.csrfguard.util.CsrfGuardUtils;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -42,10 +46,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Pattern;
-
-import org.owasp.csrfguard.log.ILogger;
-import org.owasp.csrfguard.log.LogLevel;
-import org.owasp.csrfguard.util.CsrfGuardUtils;
 
 
 /**
@@ -817,10 +817,10 @@ public abstract class ConfigPropertiesCascadeBase {
 		ILogger iLogger = iLogger();
 		if (iLogger != null) {
 			if (!ConfigPropertiesCascadeUtils.isBlank(logMessage)) {
-				iLogger.log(LogLevel.Info, logMessage);
+				iLogger.log(LogLevel.Error, logMessage);
 			}
 			if (t != null) {
-				iLogger.log(LogLevel.Info, t);
+				iLogger.log(LogLevel.Error, t);
 			}
 		} else {
 			System.err.println("ERROR: " + logMessage);
@@ -1133,7 +1133,7 @@ public abstract class ConfigPropertiesCascadeBase {
 		} catch (Exception e) {
 
 			//I guess this ok
-			logInfo("Problem loading config file: " + resourceName, e); 
+			logError("Problem loading config file: " + resourceName, e);
 
 		}
 

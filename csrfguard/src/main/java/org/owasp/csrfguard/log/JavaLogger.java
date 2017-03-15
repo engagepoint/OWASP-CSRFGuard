@@ -11,7 +11,7 @@ public class JavaLogger implements ILogger {
 
 	@Override
 	public void log(String msg) {
-		LOGGER.info(msg.replaceAll("(\\r|\\n)", ""));
+		log(LogLevel.Debug, msg);
 	}
 
 	@Override
