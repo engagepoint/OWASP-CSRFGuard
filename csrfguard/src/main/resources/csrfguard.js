@@ -443,6 +443,12 @@
 		addEvent(window,'load', function() {
 			injectTokens(token_name, token_value);
 		});
+
+		//changes from original: support primefaces ajax. jquery should be onboard
+		$(document).on('pfAjaxComplete',function (xhr, ajaxObj, responseXML) {
+			injectTokens(token_name, token_value);
+		});
+
 	} else {
 		alert("OWASP CSRFGuard JavaScript was included from within an unauthorized domain!");
 	}
