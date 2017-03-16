@@ -8,6 +8,9 @@ import javax.servlet.http.HttpServletResponseWrapper;
 
 import org.owasp.csrfguard.CsrfGuard;
 
+/**
+ * Validation has been added to original filter. It checks if token exists already then duplicate token is not added
+ */
 public class InterceptRedirectResponse extends HttpServletResponseWrapper {
 
 	private HttpServletResponse response = null;
@@ -40,19 +43,23 @@ public class InterceptRedirectResponse extends HttpServletResponseWrapper {
 			} else {
 				sb.append(sanitizedLocation);
 			}
-			
-			if (sanitizedLocation.contains("?")) {
-				sb.append('&');
-			} else {
-				sb.append('?');
-			}
 
 			// remove any query parameters from the sanitizedLocation
 			String locationUri = sanitizedLocation.split("\\?", 2)[0];
+			String tokenValue = csrfGuard.getTokenValue(request, locationUri);
 
-			sb.append(csrfGuard.getTokenName());
-			sb.append('=');
-			sb.append(csrfGuard.getTokenValue(request, locationUri));
+			if (tokenValue != null && !sanitizedLocation.contains(tokenValue)) {
+				if (sanitizedLocation.contains("?")) {
+					sb.append('&');
+				} else {
+					sb.append('?');
+				}
+
+				sb.append(csrfGuard.getTokenName());
+				sb.append('=');
+
+				sb.append(tokenValue);
+			}
 			
 			response.sendRedirect(sb.toString());
 		} else {
