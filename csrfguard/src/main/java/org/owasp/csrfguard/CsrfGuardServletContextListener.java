@@ -1,23 +1,25 @@
 package org.owasp.csrfguard;
 
+import org.owasp.csrfguard.config.overlay.ConfigurationOverlayProvider;
+import org.owasp.csrfguard.util.Streams;
+
+import javax.servlet.ServletContext;
+import javax.servlet.ServletContextEvent;
+import javax.servlet.ServletContextListener;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
-
-import javax.servlet.ServletContext;
-import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
-
-import org.owasp.csrfguard.config.overlay.ConfigurationOverlayProvider;
-import org.owasp.csrfguard.util.Streams;
+import java.util.Set;
 
 public class CsrfGuardServletContextListener implements ServletContextListener {
 
 	private final static String CONFIG_PARAM = "Owasp.CsrfGuard.Config";
+	private final static String CONFIG_PARAM_OVERRIDE = "Owasp.CsrfGuard.Config.Override";
 
 	private final static String CONFIG_PRINT_PARAM = "Owasp.CsrfGuard.Config.Print";
+	public static final String PROPERTY_PREFFIX = "org.owasp.csrfguard";
 
 	/**
 	 * servlet context (will be the empty string if it is / )
@@ -36,6 +38,11 @@ public class CsrfGuardServletContextListener implements ServletContextListener {
 	 * config file name if specified in the web.xml
 	 */
 	private static String configFileName = null;
+
+	/**
+	 * config file that contain overridden config properties
+	 */
+	private static String configOverrideFileName = null;
 	
 	/**
 	 * config file name if specified in the web.xml
@@ -55,6 +62,7 @@ public class CsrfGuardServletContextListener implements ServletContextListener {
 		}
 		
 		configFileName = context.getInitParameter(CONFIG_PARAM);
+		configOverrideFileName = context.getInitParameter(CONFIG_PARAM_OVERRIDE);
 
 		if (configFileName == null) {
 			configFileName = ConfigurationOverlayProvider.OWASP_CSRF_GUARD_PROPERTIES;
@@ -75,7 +83,13 @@ public class CsrfGuardServletContextListener implements ServletContextListener {
 			}
 			
 			properties.load(is);
+
+			if (configOverrideFileName != null && !configOverrideFileName.isEmpty()) {
+				properties = overrideConfigProperties(configOverrideFileName, properties,context);
+			}
+
 			CsrfGuard.load(properties);
+
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		} finally {
@@ -84,6 +98,32 @@ public class CsrfGuardServletContextListener implements ServletContextListener {
 
 
 		printConfigIfConfigured(context, "Printing properties before Javascript servlet, note, the javascript properties might not be initialized yet: ");
+	}
+
+	protected Properties overrideConfigProperties(String propertiesFile, Properties properties, ServletContext context) {
+		InputStream is = null;
+
+		try {
+			is = getResourceStream(propertiesFile, context, false);
+
+			if (is == null) {
+				throw new RuntimeException("Cant find properties file: " + propertiesFile);
+			}
+			Properties overrideProperties = new Properties();
+			overrideProperties.load(is);
+
+			Set<String> pNames = overrideProperties.stringPropertyNames();
+			for (String pName : pNames) {
+				if (pName.startsWith(PROPERTY_PREFFIX)) {
+					properties.setProperty(pName, overrideProperties.getProperty(pName));
+				}
+			}
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		} finally {
+			Streams.close(is);
+		}
+		return properties;
 	}
 
 	/**
