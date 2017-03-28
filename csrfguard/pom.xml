@@ -6,7 +6,7 @@
 
     <groupId>org.owasp</groupId>
     <artifactId>csrfguard</artifactId>
-    <version>3.2.1-EP-SNAPHOT</version>
+    <version>3.2.1-EP-SNAPSHOT</version>
 
     <packaging>jar</packaging>
 
