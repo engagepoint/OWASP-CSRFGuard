@@ -1406,4 +1406,15 @@ public class CsrfGuardUtils {
 	    return str == null ? "" : str;
 	  }
 
+	public static String stringArray(Collection<String> collection) {
+		StringBuilder builder = new StringBuilder();
+		builder.append("[");
+		String sep = "";
+		for (String element : collection) {
+			builder.append(sep).append("\"").append(element).append("\"");
+			sep = ",";
+		}
+		builder.append("]");
+		return builder.toString();
+	}
 }

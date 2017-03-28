@@ -80,7 +80,9 @@ public final class JavaScriptServlet extends HttpServlet {
 	private static final String X_REQUESTED_WITH_IDENTIFIER = "%X_REQUESTED_WITH%";
 	
 	private static final String TOKENS_PER_PAGE_IDENTIFIER = "%TOKENS_PER_PAGE%";
-	
+
+	private static final String TRUSTED_DOMAINS = "%TRUSTED_DOMAINS%";
+
 	private static ServletConfig servletConfig = null;
 
 	public static ServletConfig getStaticServletConfig() {
@@ -245,6 +247,7 @@ public final class JavaScriptServlet extends HttpServlet {
 		code = code.replace(CONTEXT_PATH_IDENTIFIER, CsrfGuardUtils.defaultString(request.getContextPath()));
 		code = code.replace(SERVLET_PATH_IDENTIFIER, CsrfGuardUtils.defaultString(request.getContextPath() + request.getServletPath()));
 		code = code.replace(X_REQUESTED_WITH_IDENTIFIER, CsrfGuardUtils.defaultString(csrfGuard.getJavascriptXrequestedWith()));
+		code = code.replace(TRUSTED_DOMAINS, CsrfGuardUtils.stringArray(csrfGuard.getTrustedDomains()));
 
 		/** write dynamic javascript **/
 		OutputStream output = null;

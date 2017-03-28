@@ -185,6 +185,11 @@
 
 	/** check if valid domain based on domainStrict **/
 	function isValidDomain(current, target) {
+		var domains = %TRUSTED_DOMAINS%;
+		if (domains.indexOf(target) != -1) {
+			return true;
+		}
+
 		var result = false;
 
 		/** check exact or subdomain match **/

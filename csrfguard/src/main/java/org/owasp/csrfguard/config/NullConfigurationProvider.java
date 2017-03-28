@@ -120,6 +120,11 @@ public final class NullConfigurationProvider implements ConfigurationProvider {
 	}
 
 	@Override
+	public Set<String> getTrustedDomains() {
+		return Collections.emptySet();
+	}
+
+	@Override
 	public Set<String> getProtectedMethods() {
 		return Collections.emptySet();
 	}

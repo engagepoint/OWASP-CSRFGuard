@@ -59,6 +59,8 @@ public class PropertiesConfigurationProvider implements ConfigurationProvider {
 	
 	private final static String UNPROTECTED_PAGE_PREFIX = "org.owasp.csrfguard.unprotected.";
 
+	private final static String TRUSTED_DOMAIN_PREFIX = "org.owasp.csrfguard.trusted.domain.";
+
 	private final ILogger logger;
 
 	private final String tokenName;
@@ -91,6 +93,8 @@ public class PropertiesConfigurationProvider implements ConfigurationProvider {
 
 	private final Set<String> unprotectedPages;
 
+	private final Set<String> trustedDomains;
+
 	private final Set<String> protectedMethods;
 
 	private final Set<String> unprotectedMethods;
@@ -107,6 +111,7 @@ public class PropertiesConfigurationProvider implements ConfigurationProvider {
 			actions = new ArrayList<IAction>();
 			protectedPages = new HashSet<String>();
 			unprotectedPages = new HashSet<String>();
+			trustedDomains = new HashSet<String>();
 			protectedMethods = new HashSet<String>();
 			unprotectedMethods = new HashSet<String>();
 			/** load simple properties **/
@@ -213,6 +218,17 @@ public class PropertiesConfigurationProvider implements ConfigurationProvider {
 						String pageUri = propertyString(properties, key);
 						
 						unprotectedPages.add(pageUri);
+					}
+				}
+
+				if (key.startsWith(TRUSTED_DOMAIN_PREFIX)) {
+					String directive = key.substring(TRUSTED_DOMAIN_PREFIX.length());
+					int index = directive.indexOf('.');
+
+					if (index < 0) {
+						String domain = propertyString(properties, key);
+
+						trustedDomains.add(domain);
 					}
 				}
 			}
@@ -384,6 +400,10 @@ public class PropertiesConfigurationProvider implements ConfigurationProvider {
 
 	public Set<String> getUnprotectedPages() {
 		return unprotectedPages;
+	}
+
+	public Set<String> getTrustedDomains() {
+		return trustedDomains;
 	}
 
 	public Set<String> getProtectedMethods () {

@@ -80,6 +80,8 @@ public interface ConfigurationProvider {
 
 	Set<String> getUnprotectedPages();
 
+	Set<String> getTrustedDomains();
+
 	Set<String> getProtectedMethods();
 
 	/**

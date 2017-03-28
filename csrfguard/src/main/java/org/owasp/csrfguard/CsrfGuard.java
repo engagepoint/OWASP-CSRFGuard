@@ -206,6 +206,10 @@ public final class CsrfGuard {
 		return config().getUnprotectedPages();
 	}
 
+	public Set<String> getTrustedDomains() {
+		return config().getTrustedDomains();
+	}
+
 	/**
 	 * cache regex patterns here
 	 */
@@ -517,6 +521,7 @@ public final class CsrfGuard {
 		sb.append(String.format("* Protected pages size: %s\r\n", CsrfGuardUtils.length(getProtectedPages())));
 		sb.append(String.format("* Unprotected methods: %s\r\n", CsrfGuardUtils.toStringForLog(getUnprotectedMethods())));
 		sb.append(String.format("* Unprotected pages size: %s\r\n", CsrfGuardUtils.length(getUnprotectedPages())));
+		sb.append(String.format("* Trusted domains size: %s\r\n", CsrfGuardUtils.length(getTrustedDomains())));
 		sb.append(String.format("* TokenPerPage: %s\r\n", isTokenPerPageEnabled()));
 		sb.append(String.format("* Enabled: %s\r\n", isEnabled()));
 		sb.append(String.format("* ValidateWhenNoSessionExists: %s\r\n", isValidateWhenNoSessionExists()));
