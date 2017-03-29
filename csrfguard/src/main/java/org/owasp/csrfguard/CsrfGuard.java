@@ -31,7 +31,7 @@ package org.owasp.csrfguard;
 import org.owasp.csrfguard.action.IAction;
 import org.owasp.csrfguard.config.ConfigurationProvider;
 import org.owasp.csrfguard.config.ConfigurationProviderFactory;
-import org.owasp.csrfguard.config.ConfigurationProviderFactoryMap;
+import org.owasp.csrfguard.config.ConfigurationProviderFactoryClassesMapHolder;
 import org.owasp.csrfguard.config.NullConfigurationProvider;
 import org.owasp.csrfguard.config.PropertiesConfigurationProviderFactory;
 import org.owasp.csrfguard.config.overlay.ExpirableCache;
@@ -106,8 +106,8 @@ public final class CsrfGuard {
                 .getProperty("org.owasp.csrfguard.configuration.provider.factory",
                         PropertiesConfigurationProviderFactory.class.getName());
 
-		Class<? extends ConfigurationProviderFactory> configurationProviderFactoryClass = ConfigurationProviderFactoryMap
-                .get(configurationProviderFactoryClassName);
+		Class<? extends ConfigurationProviderFactory> configurationProviderFactoryClass = ConfigurationProviderFactoryClassesMapHolder.INSTANCE
+                .getClass(configurationProviderFactoryClassName);
 
         ConfigurationProviderFactory configurationProviderFactory = CsrfGuardUtils
                 .newInstance(configurationProviderFactoryClass);
