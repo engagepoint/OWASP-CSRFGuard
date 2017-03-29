@@ -41,6 +41,8 @@ public final class Redirect extends AbstractAction {
 	private static final long serialVersionUID = -2265693822259717332L;
 
 	@Override
+	//parameter comes from property file that holds on server side
+	@SuppressWarnings("findsecbugs:UNVALIDATED_REDIRECT")
 	public void execute(HttpServletRequest request, HttpServletResponse response, CsrfGuardException csrfe, CsrfGuard csrfGuard) throws CsrfGuardException {
 		String errorPage = getParameter("Page");
 
