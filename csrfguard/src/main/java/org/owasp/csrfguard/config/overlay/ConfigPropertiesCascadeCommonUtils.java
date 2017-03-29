@@ -29,6 +29,8 @@
  */
 package org.owasp.csrfguard.config.overlay;
 
+import org.apache.commons.io.FilenameUtils;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -3954,7 +3956,7 @@ public class ConfigPropertiesCascadeCommonUtils  {
       }
       
       //make sure it exists and is a dir
-      File parentDir = new File(parentDirName);
+      File parentDir = new File(FilenameUtils.getName(parentDirName));
       if (!parentDir.exists()) {
         if (!parentDir.mkdirs()) {
           throw new RuntimeException("Cant make dir: " + parentDir.getAbsolutePath());
