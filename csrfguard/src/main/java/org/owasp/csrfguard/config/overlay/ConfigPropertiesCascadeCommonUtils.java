@@ -1160,15 +1160,15 @@ public class ConfigPropertiesCascadeCommonUtils  {
   /**
    * use the field cache, expire every day (just to be sure no leaks)
    */
-  private static ExpirableCache<String, Set<Field>> fieldSetCache = null;
+  private static ExpirableCache<String, LinkedHashSet<Field>> fieldSetCache = null;
   
   /**
    * lazy load
    * @return field set cache
    */
-  private static ExpirableCache<String, Set<Field>> fieldSetCache() {
+  private static ExpirableCache<String, LinkedHashSet<Field>> fieldSetCache() {
     if (fieldSetCache == null) {
-      fieldSetCache = new ExpirableCache<String, Set<Field>>(60*24);
+      fieldSetCache = new ExpirableCache<String, LinkedHashSet<Field>>(60*24);
     }
     return fieldSetCache;
   }
@@ -1195,16 +1195,16 @@ public class ConfigPropertiesCascadeCommonUtils  {
   /**
    * use the field cache, expire every day (just to be sure no leaks) 
    */
-  private static ExpirableCache<String, Set<Method>> getterSetCache = null;
+  private static ExpirableCache<String, LinkedHashSet<Method>> getterSetCache = null;
     
 
   /**
    * lazy load
    * @return getter cache
    */
-  private static ExpirableCache<String, Set<Method>> getterSetCache() {
+  private static ExpirableCache<String, LinkedHashSet<Method>> getterSetCache() {
     if (getterSetCache == null) {
-      getterSetCache = new ExpirableCache<String, Set<Method>>(60*24);
+      getterSetCache = new ExpirableCache<String, LinkedHashSet<Method>>(60*24);
     }
     return getterSetCache;
   }
@@ -1214,16 +1214,16 @@ public class ConfigPropertiesCascadeCommonUtils  {
   /**
    * use the field cache, expire every day (just to be sure no leaks) 
    */
-  private static ExpirableCache<String, Set<Method>> setterSetCache = null;
+  private static ExpirableCache<String, LinkedHashSet<Method>> setterSetCache = null;
     
 
   /**
    * lazy load
    * @return setter cache
    */
-  private static ExpirableCache<String, Set<Method>> setterSetCache() {
+  private static ExpirableCache<String, LinkedHashSet<Method>> setterSetCache() {
     if (setterSetCache == null) {
-      setterSetCache = new ExpirableCache<String, Set<Method>>(60*24);
+      setterSetCache = new ExpirableCache<String, LinkedHashSet<Method>>(60*24);
     }
     return setterSetCache;
   }
@@ -1832,7 +1832,7 @@ public class ConfigPropertiesCascadeCommonUtils  {
       boolean includeAnnotation) {
     // MAKE SURE IF ANY MORE PARAMS ARE ADDED, THE CACHE KEY IS CHANGED!
 
-    Set<Field> fieldNameSet = null;
+    LinkedHashSet<Field> fieldNameSet = null;
     String cacheKey = theClass + CACHE_SEPARATOR + superclassToStopAt
         + CACHE_SEPARATOR + fieldType + CACHE_SEPARATOR
         + includeSuperclassToStopAt + CACHE_SEPARATOR
@@ -3549,8 +3549,8 @@ public class ConfigPropertiesCascadeCommonUtils  {
       boolean includeSuperclassToStopAt, 
       Class<? extends Annotation> markerAnnotation, Boolean includeAnnotation) {
     //MAKE SURE IF ANY MORE PARAMS ARE ADDED, THE CACHE KEY IS CHANGED!
-    
-    Set<Method> getterSet = null;
+
+    LinkedHashSet<Method> getterSet = null;
     String cacheKey = theClass + CACHE_SEPARATOR + superclassToStopAt + CACHE_SEPARATOR + fieldType + CACHE_SEPARATOR
       + includeSuperclassToStopAt + CACHE_SEPARATOR + markerAnnotation + CACHE_SEPARATOR + includeAnnotation;
     getterSet = getterSetCache().get(cacheKey);
@@ -3800,8 +3800,8 @@ public class ConfigPropertiesCascadeCommonUtils  {
       boolean includeSuperclassToStopAt, 
       Class<? extends Annotation> markerAnnotation, boolean includeAnnotation) {
     //MAKE SURE IF ANY MORE PARAMS ARE ADDED, THE CACHE KEY IS CHANGED!
-    
-    Set<Method> setterSet = null;
+
+    LinkedHashSet<Method> setterSet = null;
     String cacheKey = theClass + CACHE_SEPARATOR + superclassToStopAt + CACHE_SEPARATOR + fieldType + CACHE_SEPARATOR
       + includeSuperclassToStopAt + CACHE_SEPARATOR + markerAnnotation + CACHE_SEPARATOR + includeAnnotation;
     setterSet = setterSetCache().get(cacheKey);
