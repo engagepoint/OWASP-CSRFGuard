@@ -3858,65 +3858,6 @@ public class ConfigPropertiesCascadeCommonUtils  {
   }
 
   /**
-   * @param resourceName is the string resource from classpath to read (e.g. grouper.properties)
-   * @param allowNull is true if its ok if the resource is null or if it is not found or blank or whatever.
-   * 
-   * @return String or null if allowed or RuntimeException if not allowed
-   */
-  public static String readResourceIntoString(String resourceName, boolean allowNull) {
-    if (isBlank(resourceName)) {
-      if (allowNull) {
-        return null;
-      }
-      throw new RuntimeException("Resource name is blank");
-    }
-    URL url = computeUrl(resourceName, allowNull);
-
-    //this is ok
-    if (url == null && allowNull) {
-      return null;
-    }
-    
-    InputStream inputStream = null;
-    StringWriter stringWriter = new StringWriter();
-    try {
-      inputStream = url.openStream();
-      copy(inputStream, stringWriter, "UTF-8");
-    } catch (IOException ioe) {
-      throw new RuntimeException("Error reading resource: '" + resourceName + "'", ioe);
-    } finally {
-      closeQuietly(inputStream);
-      closeQuietly(stringWriter);
-    }
-    return stringWriter.toString();
-  }
-
-  /**
-   * read resource into string
-   * @param resourceName the resource name
-   * @param classInJar if not null, then look for the jar where this file is, and look in the same dir
-   * @return the properties or null if not exist
-   */
-  public static String readResourceIntoString(String resourceName, Class<?> classInJar) {
-
-    try {
-      return readResourceIntoString(resourceName, false);
-    } catch (Exception e) {
-      //try from jar location
-    }
-  
-    //lets look next to jar
-    File jarFile = classInJar == null ? null : jarFile(classInJar);
-    File parentDir = jarFile == null ? null : jarFile.getParentFile();
-    String fileName = parentDir == null ? null 
-        : (stripLastSlashIfExists(fileCanonicalPath(parentDir)) + File.separator + resourceName);
-    File configFile = fileName == null ? null 
-        : new File(fileName);
-
-    return readFileIntoString(configFile);
-  }
-
-  /**
    * <p>
    * Reads the contents of a file into a String.
    * </p>
@@ -4206,15 +4147,6 @@ public class ConfigPropertiesCascadeCommonUtils  {
   }
 
   /**
-   * read properties from a resource, don't modify the properties returned since they are cached
-   * @param resourceName the resource name
-   * @return the properties
-   */
-  public synchronized static Properties propertiesFromResourceName(String resourceName) {
-    return propertiesFromResourceName(resourceName, true, true, null, null);
-  }
-
-  /**
    * clear properties cache (e.g. for testing)
    */
   public static void propertiesCacheClear() {
@@ -4242,81 +4174,6 @@ public class ConfigPropertiesCascadeCommonUtils  {
     return properties;
   }
   
-  /**
-   * read properties from a resource, dont modify the properties returned since they are cached
-   * @param resourceName the resource name (property key)
-   * @param useCache  whether or not to use cache
-   * @param exceptionIfNotExist throw an exception if the resource does not exist
-   * @param classInJar if not null, then look for the jar where this file is, and look in the same dir
-   * @param callingLog container for "Reading resource ... from" log messages
-   * @return the properties or null if not exist
-   */
-  public synchronized static Properties propertiesFromResourceName(String resourceName, boolean useCache, 
-      boolean exceptionIfNotExist, Class<?> classInJar, StringBuilder callingLog) {
-
-    Properties properties = resourcePropertiesCache.get(resourceName);
-    
-    if (!useCache || !resourcePropertiesCache.containsKey(resourceName)) {
-  
-      properties = new Properties();
-
-      boolean success = false;
-      
-      URL url = computeUrl(resourceName, true);
-      InputStream inputStream = null;
-      try {
-        inputStream = url.openStream();
-        properties.load(inputStream);
-        success = true;
-        String theLog = "Reading resource: " + resourceName + ", from: " + url.toURI();
-        if (callingLog != null) {
-          callingLog.append(theLog);
-        }
-      } catch (Exception e) {
-        
-        //clear out just in case
-        properties.clear();
-
-        //lets look next to jar
-        File jarFile = classInJar == null ? null : jarFile(classInJar);
-        File parentDir = jarFile == null ? null : jarFile.getParentFile();
-        String fileName = parentDir == null ? null 
-            : (stripLastSlashIfExists(fileCanonicalPath(parentDir)) + File.separator + resourceName);
-        File configFile = fileName == null ? null 
-            : new File(fileName);
-
-        try {
-          //looks like we have a match
-          if (configFile != null && configFile.exists() && configFile.isFile()) {
-            inputStream = new FileInputStream(configFile);
-            properties.load(inputStream);
-            success = true;
-            String theLog = "Reading resource: " + resourceName + ", from: " + fileCanonicalPath(configFile);
-            if (callingLog != null) {
-              callingLog.append(theLog);
-            }
-          }
-          
-        } catch (Exception e2) {
-        }
-        if (!success) {
-          properties = null;
-          if (exceptionIfNotExist) {
-            throw new RuntimeException("Problem with resource: '" + resourceName + "'", e);
-          }
-        }
-      } finally {
-        closeQuietly(inputStream);
-        
-        if (useCache && properties != null && properties.size() > 0) {
-          resourcePropertiesCache.put(resourceName, properties);
-        }
-      }
-    }
-    
-    return properties;
-  }
-
   /**
    * do a case-insensitive matching
    * @param theEnumClass class of the enum
@@ -4734,50 +4591,6 @@ public class ConfigPropertiesCascadeCommonUtils  {
     return input;
   }
   
-  /**
-   * if the input is a file, read string from file.  if not, or if disabled from grouper.properties, return the input
-   * @param in A path to a file
-   * @param disableExternalFileLookup when true, no attempt is made to read the input file reference into a String
-   * @return the contents of the file referred to by the input, or the original input string
-   */
-  public static String readFromFileIfFile(String in, boolean disableExternalFileLookup) {
-    
-    String theIn = in;
-    //convert both slashes to file slashes
-    if (File.separatorChar == '/') {
-      theIn = replace(theIn, "\\", "/");
-    } else {
-      theIn = replace(theIn, "/", "\\");
-    }
-    
-    //see if it is a file reference
-    if (theIn.indexOf(File.separatorChar) != -1 && !disableExternalFileLookup) {
-      //read the contents of the file into a string
-      theIn = readFileIntoString(new File(theIn));
-      return theIn;
-    }
-    return in;
-  
-  }
-
-  /**
-   * Create directories, throw exception if not possible.
-   * This is will be ok if the directory already exists (will not delete it)
-   * @param dir the directory to create
-   */
-  public static void mkdirs(File dir) {
-    if (!dir.exists()) {
-      if (!dir.mkdirs()) {
-        throw new RuntimeException("Could not create directory : " + dir.getParentFile());
-      }
-      return;
-    }
-    if (!dir.isDirectory()) {
-      throw new RuntimeException("Should be a directory but is not: " + dir);
-    }
-  }
-  
-
   /**
    * null safe string compare
    * @param first first string, or null
