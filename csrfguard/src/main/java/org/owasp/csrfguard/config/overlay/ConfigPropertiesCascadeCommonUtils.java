@@ -29,6 +29,8 @@
  */
 package org.owasp.csrfguard.config.overlay;
 
+import org.apache.commons.io.FilenameUtils;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -80,7 +82,6 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -7672,18 +7673,6 @@ public class ConfigPropertiesCascadeCommonUtils  {
     return propertiesOverrideMap;
   }
 
-  
-  /**
-   * This will execute a command, and split spaces for args (might not be what
-   * you want if you are using quotes)
-   * 
-   * @param command The command string to execute
-   */
-  public static void execCommand(String command) {
-    String[] args = splitTrim(command, " ");
-    execCommand(args);
-  }
-
   /**
    * Gobble up a stream from a runtime
    * @author mchyzer
@@ -7740,18 +7729,6 @@ public class ConfigPropertiesCascadeCommonUtils  {
   }
   
   /**
-   * <pre>This will execute a command (with args). In this method, 
-   * if the exit code of the command is not zero, an exception will be thrown.
-   * Example call: execCommand(new String[]{"/bin/bash", "-c", "cd /someFolder; runSomeScript.sh"}, true);
-   * </pre>
-   * @param arguments are the commands
-   * @return the output text of the command.
-   */
-  public static CommandResult execCommand(String[] arguments) {
-    return execCommand(arguments, true);
-  }
-  
-  /**
    * threadpool
    */
   private static ExecutorService executorService = Executors.newCachedThreadPool(new DaemonThreadFactory());
@@ -7764,75 +7741,6 @@ public class ConfigPropertiesCascadeCommonUtils  {
   public static ExecutorService retrieveExecutorService() {
     return executorService;
   }
-  
-  /**
-   * <pre>This will execute a command (with args). Under normal operation, 
-   * if the exit code of the command is not zero, an exception will be thrown.
-   * If the parameter exceptionOnExitValueNeZero is set to true, the 
-   * results of the call will be returned regardless of the exit status.
-   * Example call: execCommand(new String[]{"/bin/bash", "-c", "cd /someFolder; runSomeScript.sh"}, true);
-   * </pre>
-   * @param arguments are the commands
-   * @param exceptionOnExitValueNeZero if this is set to false, the 
-   * results of the call will be returned regardless of the exit status
-   * @return the output text of the command, and the error and return code if exceptionOnExitValueNeZero is false.
-   */
-  public static CommandResult execCommand(String[] arguments, boolean exceptionOnExitValueNeZero) {
-    Process process = null;
-
-    StringBuilder commandBuilder = new StringBuilder();
-    for (int i = 0; i < arguments.length; i++) {
-      commandBuilder.append(arguments[i]).append(" ");
-    }
-    String command = commandBuilder.toString();
-    StreamGobbler<Object> outputGobbler = null;
-    StreamGobbler<Object> errorGobbler = null;
-    try {
-      process = Runtime.getRuntime().exec(arguments);
-
-      outputGobbler = new StreamGobbler<Object>(process.getInputStream(), ".out", command);
-      errorGobbler = new StreamGobbler<Object>(process.getErrorStream(), ".err", command);
-
-      Future<Object> futureOutput = retrieveExecutorService().submit(outputGobbler);
-      Future<Object> futureError = retrieveExecutorService().submit(errorGobbler);
-      
-      try {
-        process.waitFor();
-      } finally {
-        
-        //finish running these threads
-        try {
-          futureOutput.get();
-        } finally {
-          //ignore if cant get
-        }
-        try {
-          futureError.get();
-        } finally {
-          //ignore if cant get
-        }
-      }
-    } catch (Exception e) {
-      throw new RuntimeException("Error running command", e);
-    } finally {
-      try {
-        process.destroy();
-      } catch (Exception e) {
-      }
-    }
-    
-    //was not successful???
-    if (process.exitValue() != 0 && exceptionOnExitValueNeZero) {
-      String message = "Process exit status=" + process.exitValue() + ": out: " + 
-        (outputGobbler == null ? null : outputGobbler.getResultString())
-        + ", err: " + (errorGobbler == null ? null : errorGobbler.getResultString());
-      throw new RuntimeException(message);
-    }
-
-    int exitValue = process.exitValue();
-    return new CommandResult(outputGobbler.getResultString(), errorGobbler.getResultString(), exitValue);
-  }
-
   
   /**
    * The results of executing a command.

@@ -28,14 +28,9 @@
  */
 package org.owasp.csrfguard.util;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.io.Reader;
-import java.io.StringWriter;
-import java.io.Writer;
+import org.apache.commons.io.FilenameUtils;
+
+import java.io.*;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
@@ -251,6 +246,10 @@ public class CsrfGuardUtils {
 	}
 	public static String readFileContent(String fileName) {
 		InputStream is = null;
+
+		if (!fileName.contains(File.pathSeparator)){
+		    fileName = FilenameUtils.getName(fileName);
+        }
 
 		try {
 			is = new FileInputStream(fileName);
