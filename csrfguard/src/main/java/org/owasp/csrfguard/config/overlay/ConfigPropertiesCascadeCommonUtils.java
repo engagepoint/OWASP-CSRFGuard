@@ -6214,6 +6214,10 @@ public class ConfigPropertiesCascadeCommonUtils  {
    * @param prompt to print to user
    * @return the password
    */
+  @SuppressWarnings("squid:S1147")
+  /**
+   * System.exit cab be used in command line tools
+   */
   public static String retrievePasswordFromStdin(boolean dontMask, String prompt) {
     String passwordString = null;
 
@@ -6229,6 +6233,7 @@ public class ConfigPropertiesCascadeCommonUtils  {
          passwordString = br.readLine(); 
       } catch (IOException ioe) { 
          System.out.println("IO error! " + getFullStackTrace(ioe));
+         System.exit(1);
       } 
 
     } else {
