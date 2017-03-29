@@ -58,7 +58,7 @@ import java.util.Set;
  * @param <V> value type
  */
 @SuppressWarnings("serial")
-public class ExpirableCache<K,V> implements Serializable {
+public class ExpirableCache<K extends Serializable, V extends Serializable> implements Serializable {
 
   /** max time to live in millis */
   static long MAX_TIME_TO_LIVE_MILLIS = 1000 * 60 * 60 * 24; //1 day
