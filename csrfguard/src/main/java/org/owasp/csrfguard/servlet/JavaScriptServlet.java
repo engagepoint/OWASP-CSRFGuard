@@ -50,7 +50,6 @@ import org.owasp.csrfguard.util.CsrfGuardUtils;
 import org.owasp.csrfguard.util.Streams;
 import org.owasp.csrfguard.util.Strings;
 import org.owasp.csrfguard.util.Writers;
-import org.owasp.encoder.Encode;
 
 public final class JavaScriptServlet extends HttpServlet {
 

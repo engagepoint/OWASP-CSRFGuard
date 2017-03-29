@@ -49,7 +49,6 @@ import org.owasp.csrfguard.action.IAction;
 import org.owasp.csrfguard.config.ConfigurationProvider;
 import org.owasp.csrfguard.config.ConfigurationProviderFactory;
 import org.owasp.csrfguard.config.NullConfigurationProvider;
-import org.owasp.csrfguard.config.PropertiesConfigurationProvider;
 import org.owasp.csrfguard.config.PropertiesConfigurationProviderFactory;
 import org.owasp.csrfguard.config.overlay.ExpirableCache;
 import org.owasp.csrfguard.log.ILogger;
@@ -59,7 +58,6 @@ import org.owasp.csrfguard.util.CsrfGuardUtils;
 import org.owasp.csrfguard.util.RandomGenerator;
 import org.owasp.csrfguard.util.Streams;
 import org.owasp.csrfguard.util.Writers;
-import org.owasp.encoder.Encode;
 
 public final class CsrfGuard {
 

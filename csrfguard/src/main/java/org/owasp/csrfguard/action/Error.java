@@ -35,7 +35,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.owasp.csrfguard.CsrfGuard;
 import org.owasp.csrfguard.CsrfGuardException;
-import org.owasp.encoder.Encode;
 
 public final class Error extends AbstractAction {
 
