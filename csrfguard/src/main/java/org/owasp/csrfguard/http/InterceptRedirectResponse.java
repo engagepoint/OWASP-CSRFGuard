@@ -27,6 +27,8 @@ public class InterceptRedirectResponse extends HttpServletResponseWrapper {
 	}
 
 	@Override
+	//sanitized location is used for redirect
+	@SuppressWarnings("findsecbugs:UNVALIDATED_REDIRECT")
 	public void sendRedirect(String location) throws IOException {
 		// Remove CR and LF characters to prevent CRLF injection
 		String sanitizedLocation = location.replaceAll("(\\r|\\n|%0D|%0A|%0a|%0d)", "");
