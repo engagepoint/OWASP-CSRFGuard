@@ -28,6 +28,8 @@
  */
 package org.owasp.csrfguard.util;
 
+import org.apache.commons.io.FilenameUtils;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -253,7 +255,7 @@ public class CsrfGuardUtils {
 		InputStream is = null;
 
 		try {
-			is = new FileInputStream(fileName);
+			is = new FileInputStream(FilenameUtils.getName(fileName));
 			return readInputStreamContent(is);
 		} catch (IOException ioe) {
 			throw new RuntimeException(ioe);
