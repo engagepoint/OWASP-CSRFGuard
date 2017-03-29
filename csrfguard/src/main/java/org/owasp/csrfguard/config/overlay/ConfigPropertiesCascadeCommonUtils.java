@@ -6261,41 +6261,6 @@ public class ConfigPropertiesCascadeCommonUtils  {
   }
   
   /**
-   * get the list from comma separated from the argMap, throw exception if not there and required
-   * @param argMap map of argument key/values
-   * @param argMapNotUsed keeps track of unused arguments
-   * @param key the key to lookup
-   * @param required whether or not the key is required to be present
-   * @return the value or null or exception
-   */
-  public static List<String> argMapFileList(Map<String, String> argMap, Map<String, String> argMapNotUsed, 
-      String key, boolean required) {
-    String argString = argMapString(argMap, argMapNotUsed, key, required);
-    if (isBlank(argString)) {
-      return null;
-    }
-    //read from file
-    File file = new File(argString);
-    try {
-      //do this by regex, since we dont know what platform we are on
-      String listString = readFileIntoString(file);
-      String[] array = listString.split("\\s+");
-      List<String> list = new ArrayList<String>();
-      for (String string : array) {
-        //dont know if any here will be blank or whatnot
-        if (!isBlank(string)) {
-          //should already be trimmed, but just in case
-          list.add(trim(string));
-        }
-      }
-      return list;
-    } catch (Exception e) {
-      throw new RuntimeException("Error reading file: '" 
-          + fileCanonicalPath(file) + "' from command line arg: " + key, e );
-    }
-  }
-  
-  /**
    * Copy bytes from an <code>InputStream</code> to chars on a
    * <code>Writer</code> using the default character encoding of the platform.
    * <p>
@@ -7789,54 +7754,6 @@ public class ConfigPropertiesCascadeCommonUtils  {
       return thread;
     }
   
-  }
-
-  /**
-   * clear out all files recursively in a directory, including the directory
-   * itself
-   * @param dirName the directory name to delete
-   * 
-   * @throws RuntimeException
-   *           when something goes wrong
-   */
-  public static void deleteRecursiveDirectory(String dirName) {
-    //delete all files in the directory
-    File dir = new File(dirName);
-
-    //if it doesnt exist then we are done
-    if (!dir.exists()) {
-      return;
-    }
-
-    //see if its a directory
-    if (!dir.isDirectory()) {
-      throw new RuntimeException("The directory: " + dirName + " is not a directory");
-    }
-
-    //get the files into a vector
-    File[] allFiles = dir.listFiles();
-
-    //loop through the array
-    for (int i = 0; i < allFiles.length; i++) {
-      if (-1 < allFiles[i].getName().indexOf("..")) {
-        continue; //dont go to the parent directory
-      }
-
-      if (allFiles[i].isFile()) {
-        //delete the file
-        if (!allFiles[i].delete()) {
-          throw new RuntimeException("Could not delete file: " + allFiles[i].getPath());
-        }
-      } else {
-        //its a directory
-        deleteRecursiveDirectory(allFiles[i].getPath());
-      }
-    }
-
-    //delete the directory itself
-    if (!dir.delete()) {
-      throw new RuntimeException("Could not delete directory: " + dir.getPath());
-    }
   }
 
   /**
