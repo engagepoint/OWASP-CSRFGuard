@@ -3952,7 +3952,7 @@ public class ConfigPropertiesCascadeCommonUtils  {
       }
       
       //make sure it exists and is a dir
-      File parentDir = new File(FilenameUtils.getName(parentDirName));
+      File parentDir = new File(parentDirName);
       if (!parentDir.exists()) {
         if (!parentDir.mkdirs()) {
           throw new RuntimeException("Cant make dir: " + parentDir.getAbsolutePath());
@@ -3976,7 +3976,7 @@ public class ConfigPropertiesCascadeCommonUtils  {
     int dotLocation = fileName.lastIndexOf('.');
     String fileNamePre = fileName.substring(0,dotLocation);
     String fileNamePost = fileName.substring(dotLocation);
-    File theFile = new File(FilenameUtils.getName(fileName));
+    File theFile = new File(fileName);
 
     int i;
     
@@ -3987,7 +3987,7 @@ public class ConfigPropertiesCascadeCommonUtils  {
       }
       
       fileName = fileNamePre + "_" + i + fileNamePost;
-      theFile = new File(FilenameUtils.getName(fileName));
+      theFile = new File(fileName);
       
     }
     
@@ -4981,7 +4981,7 @@ public class ConfigPropertiesCascadeCommonUtils  {
     String fileName = parentDir == null ? null 
         : (stripLastSlashIfExists(fileCanonicalPath(parentDir)) + File.separator + resourceName);
     File configFile = fileName == null ? null 
-        : new File(FilenameUtils.getName(fileName));
+        : new File(fileName);
 
     return readFileIntoString(configFile);
   }
@@ -5353,7 +5353,7 @@ public class ConfigPropertiesCascadeCommonUtils  {
         String fileName = parentDir == null ? null 
             : (stripLastSlashIfExists(fileCanonicalPath(parentDir)) + File.separator + resourceName);
         File configFile = fileName == null ? null 
-            : new File(FilenameUtils.getName(fileName));
+            : new File(fileName);
 
         try {
           //looks like we have a match
@@ -5823,7 +5823,7 @@ public class ConfigPropertiesCascadeCommonUtils  {
     //see if it is a file reference
     if (theIn.indexOf(File.separatorChar) != -1 && !disableExternalFileLookup) {
       //read the contents of the file into a string
-      theIn = readFileIntoString(new File(FilenameUtils.getName(theIn)));
+      theIn = readFileIntoString(new File(theIn));
       return theIn;
     }
     return in;
@@ -7365,7 +7365,7 @@ public class ConfigPropertiesCascadeCommonUtils  {
       return null;
     }
     //read from file
-    File file = new File(FilenameUtils.getName(argString));
+    File file = new File(argString);
     try {
       //do this by regex, since we dont know what platform we are on
       String listString = readFileIntoString(file);
@@ -7471,7 +7471,7 @@ public class ConfigPropertiesCascadeCommonUtils  {
       CodeSource codeSource = sampleClass.getProtectionDomain().getCodeSource();
       if (codeSource != null && codeSource.getLocation() != null) {
         String fileName = URLDecoder.decode(codeSource.getLocation().getFile(), "UTF-8");
-        return new File(FilenameUtils.getName(fileName));
+        return new File(fileName);
       }
       String resourcePath = sampleClass.getName();
       resourcePath = resourcePath.replace('.', '/') + ".class";
@@ -9051,7 +9051,7 @@ public class ConfigPropertiesCascadeCommonUtils  {
    */
   public static void deleteRecursiveDirectory(String dirName) {
     //delete all files in the directory
-    File dir = new File(FilenameUtils.getName(dirName));
+    File dir = new File(dirName);
 
     //if it doesnt exist then we are done
     if (!dir.exists()) {
@@ -9119,7 +9119,7 @@ public class ConfigPropertiesCascadeCommonUtils  {
     String location = trim(matcher.group(2));
     
     if (equals(typeString, "file")) {
-      File file = new File(FilenameUtils.getName(location));
+      File file = new File(location);
       if (!file.exists() || !file.isFile()) {
         throw new RuntimeException(logHint + " File does not exist: " + file.getAbsolutePath());
       }
