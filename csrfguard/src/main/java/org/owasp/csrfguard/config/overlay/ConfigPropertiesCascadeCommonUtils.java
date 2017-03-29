@@ -29,8 +29,6 @@
  */
 package org.owasp.csrfguard.config.overlay;
 
-import org.apache.commons.io.FilenameUtils;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
