@@ -481,6 +481,8 @@ public abstract class ConfigPropertiesCascadeBase {
 		 */
 		FILE {
 
+			// the configFileTypeConfig value comes from a config file and can't be used for path traversal attack
+			@SuppressWarnings("findsecbugs:PATH_TRAVERSAL_IN")
 			@Override
 			public InputStream inputStream(String configFileTypeConfig,
 					ConfigPropertiesCascadeBase configPropertiesCascadeBase) {
@@ -504,6 +506,8 @@ public abstract class ConfigPropertiesCascadeBase {
 			/**
 			 * 
 			 */
+			// the configFileTypeConfig value comes from a config file and can't be used for path traversal attack
+			@SuppressWarnings("findsecbugs:PATH_TRAVERSAL_IN")
 			@Override
 			public InputStream inputStream(String configFileTypeConfig,
 					ConfigPropertiesCascadeBase configPropertiesCascadeBase) {
