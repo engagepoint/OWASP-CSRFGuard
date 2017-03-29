@@ -247,10 +247,6 @@ public class CsrfGuardUtils {
 	public static String readFileContent(String fileName) {
 		InputStream is = null;
 
-		if (!fileName.contains(File.pathSeparator)){
-		    fileName = FilenameUtils.getName(fileName);
-        }
-
 		try {
 			is = new FileInputStream(fileName);
 			return readInputStreamContent(is);
