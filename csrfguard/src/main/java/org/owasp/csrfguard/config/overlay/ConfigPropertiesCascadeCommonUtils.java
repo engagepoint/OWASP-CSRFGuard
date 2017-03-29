@@ -32,17 +32,13 @@ package org.owasp.csrfguard.config.overlay;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.PushbackInputStream;
 import java.io.Reader;
-import java.io.Serializable;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
@@ -57,14 +53,12 @@ import java.math.BigDecimal;
 import java.net.InetAddress;
 import java.net.URL;
 import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.security.CodeSource;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
-import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -105,55 +99,6 @@ public class ConfigPropertiesCascadeCommonUtils  {
   private static ThreadLocal<Map<String, Map<String, String>>> propertiesThreadLocalOverrideMap = new ThreadLocal<Map<String, Map<String, String>>>();
 
   /**
-   * return the arg after the argBefore, or null if not there, or exception
-   * if argBefore is not found
-   * @param args array of arguments
-   * @param argBefore the argument immediately preceeding the desired value
-   * @return the arg that appears just after argBefore
-   */
-  public static String argAfter(String[] args, String argBefore) {
-    if (length(args) <= 1) {
-      return null;
-    }
-    int argBeforeIndex = -1;
-    for (int i=0;i<args.length;i++) {
-      if (equals(args[i], argBefore)) {
-        argBeforeIndex = i;
-        break;
-      }
-    }
-    if (argBeforeIndex == -1) {
-      throw new RuntimeException("Cant find arg before");
-    }
-    if (argBeforeIndex < args.length - 1) {
-      return args[argBeforeIndex + 1];
-    }
-    return null;
-  }
-  
-  /**
-   * append and maybe put a separator in there
-   * @param result The containier for the modified StringBuilder
-   * @param separatorIfResultNotEmpty the separator string to append when adding to a non-blank result
-   * @param stringToAppend the string to append
-   */
-  public static void append(StringBuilder result, 
-      String separatorIfResultNotEmpty, String stringToAppend) {
-    if (result.length() != 0) {
-      result.append(separatorIfResultNotEmpty);
-    }
-    result.append(stringToAppend);
-  }
-  
-  /**
-   * 
-   */
-  public static final String LOG_ERROR = "Error trying to make parent dirs for logger or logging first statement, check to make " +
-                "sure you have proper file permissions, and that your servlet container is giving " +
-                "your app rights to access the log directory (e.g. for tomcat set TOMCAT5_SECURITY=no), g" +
-                "oogle it for more info";
-
-  /**
    * The number of bytes in a kilobyte.
    */
   public static final long ONE_KB = 1024;
@@ -169,40 +114,6 @@ public class ConfigPropertiesCascadeCommonUtils  {
   public static final long ONE_GB = ONE_KB * ONE_MB;
 
   /**
-   * Returns a human-readable version of the file size (original is in
-   * bytes).
-   *
-   * @param size The number of bytes.
-   * @return     A human-readable display value (includes units).
-   */
-
-  //TODO: need for I18N?
-  public static String byteCountToDisplaySize(long size) {
-    String displaySize;
-
-    if (size / ONE_GB > 0) {
-      displaySize = String.valueOf(size / ONE_GB) + " GB";
-    } else if (size / ONE_MB > 0) {
-      displaySize = String.valueOf(size / ONE_MB) + " MB";
-    } else if (size / ONE_KB > 0) {
-      displaySize = String.valueOf(size / ONE_KB) + " KB";
-    } else {
-      displaySize = String.valueOf(size) + " bytes";
-    }
-
-    return displaySize;
-  }
-  /**
-   * see if options have a specific option by int bits
-   * @param options The options integer that holds option flag bits
-   * @param option  The option flag bit to check
-   * @return true if the option flag is set in the options int 
-   */
-  public static boolean hasOption(int options, int option) {
-    return (options & option) > 0;
-  }
-  
-  /**
    * get canonical path of file
    * @param file The file from which the canonical path will be extracted
    * @return the canonical path
@@ -214,90 +125,6 @@ public class ConfigPropertiesCascadeCommonUtils  {
     } catch (IOException ioe) {
       throw new RuntimeException(ioe);
     }
-  }
-  
-  /**
-   * return the suffix after a char.  If the char doesn't exist, just return the string
-   * @param input string
-   * @param theChar the marker character such as "."
-   * @return Suffix of string after the last index of the specified character
-   */
-  public static String suffixAfterChar(String input, char theChar) {
-    if (input == null) {
-      return null;
-    }
-    //get the real type off the end
-    int lastIndex = input.lastIndexOf(theChar);
-    if (lastIndex > -1) {
-      input = input.substring(lastIndex + 1, input.length());
-    }
-    return input;
-  }
-
-  /**
-   * get the oracle underscore name e.g. javaNameHere &rarr; JAVA_NAME_HERE
-   *
-   * @param javaName
-   *          the java convention name, in camelCase
-   *
-   * @return the oracle underscore name based on the java name
-   */
-  public static String oracleStandardNameFromJava(String javaName) {
-  
-    StringBuilder result = new StringBuilder();
-  
-    if ((javaName == null) || (0 == "".compareTo(javaName))) {
-      return javaName;
-    }
-  
-    //if package is specified, only look at class name
-    javaName = suffixAfterChar(javaName, '.');
-  
-    //don't check the first char
-    result.append(javaName.charAt(0));
-  
-    char currChar;
-  
-    boolean previousCap = false;
-    
-    //loop through the string, looking for uppercase
-    for (int i = 1; i < javaName.length(); i++) {
-      currChar = javaName.charAt(i);
-  
-      //if uppcase append an underscore
-      if (!previousCap && (currChar >= 'A') && (currChar <= 'Z')) {
-        result.append("_");
-      }
-  
-      result.append(currChar);
-      if ((currChar >= 'A') && (currChar <= 'Z')) {
-        previousCap = true;
-      } else {
-        previousCap = false;
-      }
-    }
-  
-    //this is in upper-case
-    return result.toString().toUpperCase();
-  }
-
-  
-  /**
-   * see if two maps are the equivalent (based on number of entries, 
-   * and the equals() method of the keys and values)
-   *
-   * @param <K> key type
-   * @param <V> value type
-   * @param first the first map to compare
-   * @param second the second map to compare
-   * @return true if equal
-   */
-  public static <K,V> boolean mapEquals(Map<K,V> first, Map<K,V> second) {
-    Set<K> keysMismatch = new HashSet<K>();
-    mapDifferences(first, second, keysMismatch, null);
-    //if any keys mismatch, then not equal
-    return keysMismatch.size() == 0;
-    
   }
   
   /**
@@ -357,90 +184,6 @@ public class ConfigPropertiesCascadeCommonUtils  {
   }
   
   /**
-   * Sleep for the specified number of milliseconds and throw RuntimeExeption if interrupted.
-   *
-   * @param millis Number of milliseconds to sleep
-   * @see Thread#sleep
-   */
-  public static void sleep(long millis) {
-    try {
-      Thread.sleep(millis);
-    } catch (InterruptedException ie) {
-      throw new RuntimeException(ie);
-    }
-  }
-  
-  /**
-   * If we can, inject this into the exception, else return false
-   * @param t The Throwable to inject
-   * @param message The message to append to the throwable's message
-   * @return true if success, false if not
-   */
-  public static boolean injectInException(Throwable t, String message) {
-    
-    String throwableFieldName = "detailMessage";
-
-    try {
-      String currentValue = t.getMessage();
-      if (!isBlank(currentValue)) {
-        currentValue += ",\n" + message;
-      } else {
-        currentValue = message;
-      }
-      assignField(t, throwableFieldName, currentValue);
-      return true;
-    } catch (Throwable t2) {
-      //dont worry about what the problem is, return false so the caller can log
-      return false;
-    }
-    
-  }
-  
-  /**
-   * get a unique string identifier based on the current time,
-   * this is not globally unique, just unique for as long as this
-   * server is running...
-   * 
-   * @return String
-   */
-  public static String uniqueId() {
-    //this needs to be threadsafe since we are using a static field
-    synchronized (ConfigPropertiesCascadeCommonUtils.class) {
-      lastId = incrementStringInt(lastId);
-    }
-
-    return String.valueOf(lastId);
-  }
-
-  /**
-   * get a file name from a resource name
-   * 
-   * @param resourceName
-   *          is the classpath location
-   * 
-   * @return the file path on the system
-   */
-  public static File fileFromResourceName(String resourceName) {
-    
-    URL url = computeUrl(resourceName, true);
-
-    if (url == null) {
-      return null;
-    }
-
-    try {
-      String fileName = URLDecoder.decode(url.getFile(), "UTF-8");
-  
-      File configFile = new File(fileName);
-
-      return configFile;
-    } catch (UnsupportedEncodingException uee) {
-      throw new RuntimeException(uee);
-    }
-  }
-  
-
-  /**
    * compute a url of a resource
    * @param resourceName The resource name for which a URL will be built
    * @param canBeNull if can't be null, throw runtime
@@ -479,19 +222,6 @@ public class ConfigPropertiesCascadeCommonUtils  {
     return ConfigPropertiesCascadeCommonUtils.class.getClassLoader();
   }
 
-  /**
-   * make sure a array is non null.  If null, then return an empty array.
-   * Note: this will probably not work for primitive arrays (e.g. int[])
-   * @param <T> template type
-   * @param array the array to check
-   * @param theClass to make array from
-   * @return the list or empty list if null
-   */
-  @SuppressWarnings("unchecked")
-  public static <T> T[] nonNull(T[] array, Class<?> theClass) {
-    return array == null ? ((T[])Array.newInstance(theClass, 0)) : array;
-  }
-  
   /**
    * get the prefix or suffix of a string based on a separator
    * 
@@ -535,38 +265,6 @@ public class ConfigPropertiesCascadeCommonUtils  {
     return prefixOrSuffix;
   }
 
-  /**
-   * get the extension from name.  if name is a:b:c, name is c
-   * @param name a name, potentially containing colon separators such as "a:b:c"
-   * @return the extension a.k.a. part of the name after the last colon character
-   */
-  public static String extensionFromName(String name) {
-    if (isBlank(name)) {
-      return name;
-    }
-    int lastColonIndex = name.lastIndexOf(':');
-    if (lastColonIndex == -1) {
-      return name;
-    }
-    String extension = name.substring(lastColonIndex+1);
-    return extension;
-  }
-  
-  /**
-   * Returns the class object for the given name.
-   * @param origClassName fully qualified class name
-   * @return the class
-   */
-  public static Class forName(String origClassName) {
-        
-    try {
-      return Class.forName(origClassName);
-    } catch (Throwable t) {
-      throw new RuntimeException("Problem loading class: " + origClassName, t);
-    }
-    
-  }
-  
   /**
    * Construct a class
    * @param <T> template type
@@ -616,23 +314,6 @@ public class ConfigPropertiesCascadeCommonUtils  {
   }
   
   /**
-   * get the parent stem name from name.  if already a root stem
-   * then just return null.  e.g. if the name is a:b:c then
-   * the return value is a:b
-   * @param name a colon-delimited name such as "a:b:c"
-   * @return the parent stem name or null if none
-   */
-  public static String parentStemNameFromName(String name) {
-    int lastColonIndex = name.lastIndexOf(':');
-    if (lastColonIndex == -1) {
-      return null;
-    }
-    String parentStemName = name.substring(0,lastColonIndex);
-    return parentStemName;
-
-  }
-  
-  /**
    * return the string or the other if the first is blank
    * @param string The string
    * @param defaultStringIfBlank The string used when the first parameter is blank
@@ -641,36 +322,6 @@ public class ConfigPropertiesCascadeCommonUtils  {
   public static String defaultIfBlank(String string, String defaultStringIfBlank) {
     return isBlank(string) ? defaultStringIfBlank : string;
   }
-  
-  /**
-   * genericized method to see if first is null, if so then return second, else first.
-   * @param <T> template type
-   * @param theValue first input
-   * @param defaultIfTheValueIsNull second input
-   * @return the first if not null, second if no
-   */
-  public static <T> T defaultIfNull(T theValue, T defaultIfTheValueIsNull) {
-    return theValue != null ? theValue : defaultIfTheValueIsNull;
-  }
-  
-  /**
-   * add each element of listToAdd if it is not already in list
-   * @param <T> template type
-   * @param list to add to
-   * @param listToAdd each element will be added to list, or null if none
-   */
-  public static <T> void addIfNotThere(Collection<T> list, Collection<T> listToAdd) {
-    //maybe nothing to do
-    if (listToAdd == null) {
-      return;
-    }
-    for (T t : listToAdd) {
-      if (!list.contains(t)) {
-        list.add(t);
-      }
-    }
-  }
-
   
   /**
    * print out various types of objects
@@ -730,41 +381,6 @@ public class ConfigPropertiesCascadeCommonUtils  {
 
   /**
    * convert a set to a string (comma separate)
-   * @param set the set to convert into a human-readable string
-   * @return the String
-   */
-  public static String setToString(Set set) {
-    if (set == null) {
-      return "null";
-    }
-    if (set.size() == 0) {
-      return "empty";
-    }
-    StringBuilder result = new StringBuilder();
-    boolean first = true;
-    for (Object object : set) {
-      if (!first) {
-        result.append(", ");
-      }
-      first = false;
-      result.append(object);
-    }
-    return result.toString();
-  }
-  
-  /**
-   * convert a set to a string (comma separate)
-   * @param map the map to convert into a human-readable string
-   * @return the String
-   * @deprecated use mapToString(map)
-   */
-  @Deprecated
-  public static String MapToString(Map map) {
-    return mapToString(map);
-  }
-
-  /**
-   * convert a set to a string (comma separate)
    * @param map the map to convert into a human-readable string
    * @return the String
    */
@@ -785,35 +401,6 @@ public class ConfigPropertiesCascadeCommonUtils  {
       result.append(object).append(": ").append(map.get(object));
     }
     return result.toString();
-  }
-
-  /**
-   * print out various types of objects
-   * 
-   * @param object the object to convert to a human-readable string
-   * @return the string value
-   */
-  public static String toStringForLog(Object object) {
-    StringBuilder result = new StringBuilder();
-    toStringForLogHelper(object, -1, result);
-    return result.toString();
-  }
-
-  /**
-   * print out various types of objects
-   * 
-   * @param object the object to convert to a human-readable string
-   * @param maxChars is the max chars that should be returned (abbreviate if longer), or -1 for any amount
-   * @return the string value
-   */
-  public static String toStringForLog(Object object, int maxChars) {
-    StringBuilder result = new StringBuilder();
-    toStringForLogHelper(object, -1, result);
-    String resultString = result.toString();
-    if (maxChars != -1) {
-      return abbreviate(resultString, maxChars);
-    }
-    return resultString;
   }
 
   /**
@@ -840,75 +427,6 @@ public class ConfigPropertiesCascadeCommonUtils  {
 
   }
 
-  /**
-   * retrieve a batch by 0 index. Will return an array of size batchSize or
-   * the remainder. the array will be full of elements. Note, this requires an
-   * ordered input (so use linkedhashset not hashset if doing sets)
-   * @param <T> template type
-   * @param collection the collection
-   * @param batchSize the batch size
-   * @param batchIndex the batch index
-   * @return the list
-   *         This never returns null, only empty list
-   */
-  @SuppressWarnings("unchecked")
-  public static <T> List<T> batchList(Collection<T> collection, int batchSize,
-      int batchIndex) {
-
-    int numberOfBatches = batchNumberOfBatches(collection, batchSize);
-    int arraySize = length(collection);
-
-    // short circuit
-    if (arraySize == 0) {
-      return new ArrayList<T>();
-    }
-
-    List<T> theBatchObjects = new ArrayList<T>();
-
-    // lets get the type of the first element if possible
-//    Object first = get(arrayOrCollection, 0);
-//
-//    Class theType = first == null ? Object.class : first.getClass();
-
-    // if last batch
-    if (batchIndex == numberOfBatches - 1) {
-
-      // needs to work to 1-n
-      //int thisBatchSize = 1 + ((arraySize - 1) % batchSize);
-
-      int collectionIndex = 0;
-      for (T t : collection) {
-        if (collectionIndex++ < batchIndex * batchSize) {
-          continue;
-        }
-        //just copy the rest
-        //if (collectionIndex >= (batchIndex * batchSize) + arraySize) {
-        //  break;
-        //}
-        //we are in the copy mode
-        theBatchObjects.add(t);
-      }
-
-    } else {
-      // if non-last batch
-      //int newIndex = 0;
-      int collectionIndex = 0;
-      for (T t : collection) {
-        if (collectionIndex < batchIndex * batchSize) {
-          collectionIndex++;
-          continue;
-        }
-        //done with batch
-        if (collectionIndex >= (batchIndex + 1) * batchSize) {
-          break;
-        }
-        theBatchObjects.add(t);
-        collectionIndex++;
-      }
-    }
-    return theBatchObjects;
-  }
-  
   /**
    * split a string based on a separator into an array, and trim each entry (see
    * the Commons Util trim() for more details)
@@ -972,67 +490,6 @@ public class ConfigPropertiesCascadeCommonUtils  {
     return items;
   }
 
-  /**
-   * escape url chars (e.g. a # is %23)
-   * @param string input
-   * @return the encoded string
-   */
-  public static String escapeUrlEncode(String string) {
-    String result = null;
-    try {
-      result = URLEncoder.encode(string, "UTF-8");
-    } catch (UnsupportedEncodingException ex) {
-      throw new RuntimeException("UTF-8 not supported", ex);
-    }
-    return result;
-  }
-  
-  /**
-   * unescape url chars (e.g. a space is %20)
-   * @param string input
-   * @return the encoded string
-   */
-  public static String escapeUrlDecode(String string) {
-    String result = null;
-    try {
-      result = URLDecoder.decode(string, "UTF-8");
-    } catch (UnsupportedEncodingException ex) {
-      throw new RuntimeException("UTF-8 not supported", ex);
-    }
-    return result;
-  }
-
-  /**
-   * make sure a list is non null.  If null, then return an empty list
-   * @param <T> template type
-   * @param list the list, or null
-   * @return the list or empty list if null
-   */
-  public static <T> List<T> nonNull(List<T> list) {
-    return list == null ? new ArrayList<T>() : list;
-  }
-  
-  /**
-   * make sure a list is non null.  If null, then return an empty set
-   * @param <T> template type
-   * @param set the set, or null
-   * @return the set or empty set if null
-   */
-  public static <T> Set<T> nonNull(Set<T> set) {
-    return set == null ? new HashSet<T>() : set;
-  }
-  
-  /**
-   * make sure it is non null, if null, then give new map
-   * 
-   * @param <K> key of map
-   * @param <V> value of map
-   * @param map is map
-   * @return set non null
-   */
-  public static <K,V> Map<K,V> nonNull(Map<K,V> map) {
-    return map == null ? new HashMap<K,V>() : map;
-  }
 
   /**
    * return a list of objects from varargs.  Though if there is one
@@ -1059,17 +516,6 @@ public class ConfigPropertiesCascadeCommonUtils  {
     return result;
   }
 
-  /**
-   * convert classes to a list
-   * @param classes The classes to be returned as a List
-   * @return list of classes
-   */
-  public static List<Class<?>> toListClasses(Class<?>... classes) {
-    return toList(classes);
-  }
-  
-
-  
   /**
    * return a set of objects from varargs.
    * 
@@ -1239,98 +685,6 @@ public class ConfigPropertiesCascadeCommonUtils  {
    * cache the properties read from resource 
    */
   private static Map<String, Properties> resourcePropertiesCache = new HashMap<String, Properties>();
-
-  /**
-   * assign data to a field
-   * 
-   * @param theClass
-   *            the class which has the method
-   * @param invokeOn
-   *            to call on or null for static
-   * @param fieldName
-   *            method name to call
-   * @param dataToAssign
-   *            data
-   * @param callOnSupers
-   *            if static and method not exists, try on supers
-   * @param overrideSecurity
-   *            true to call on protected or private etc methods
-   * @param typeCast
-   *            true if we should typecast
-   * @param annotationWithValueOverride
-   *            annotation with value of override
-   */
-  public static void assignField(Class theClass, Object invokeOn,
-      String fieldName, Object dataToAssign, boolean callOnSupers,
-      boolean overrideSecurity, boolean typeCast,
-      Class<? extends Annotation> annotationWithValueOverride) {
-    if (theClass == null && invokeOn != null) {
-      theClass = invokeOn.getClass();
-    }
-    Field field = field(theClass, fieldName, callOnSupers, true);
-    assignField(field, invokeOn, dataToAssign, overrideSecurity, typeCast,
-        annotationWithValueOverride);
-  }
-
-  /**
-   * assign data to a field. Will find the field in superclasses, will
-   * typecast, and will override security (private, protected, etc)
-   * 
-   * @param theClass
-   *            the class which has the method
-   * @param invokeOn
-   *            to call on or null for static
-   * @param fieldName
-   *            method name to call
-   * @param dataToAssign
-   *            data
-   * @param annotationWithValueOverride
-   *            annotation with value of override
-   */
-  public static void assignField(Class theClass, Object invokeOn,
-      String fieldName, Object dataToAssign,
-      Class<? extends Annotation> annotationWithValueOverride) {
-    assignField(theClass, invokeOn, fieldName, dataToAssign, true, true,
-        true, annotationWithValueOverride);
-  }
-
-  /**
-   * assign data to a field
-   * 
-   * @param field
-   *            is the field to assign to
-   * @param invokeOn
-   *            to call on or null for static
-   * @param dataToAssign
-   *            data
-   * @param overrideSecurity
-   *            true to call on protected or private etc methods
-   * @param typeCast
-   *            true if we should typecast
-   */
-  @SuppressWarnings("unchecked")
-  public static void assignField(Field field, Object invokeOn,
-      Object dataToAssign, boolean overrideSecurity, boolean typeCast) {
-
-    try {
-      Class fieldType = field.getType();
-      // typecast
-      if (typeCast) {
-        dataToAssign = 
-                 typeCast(dataToAssign, fieldType,
-                 true, true);
-      }
-      if (overrideSecurity) {
-        field.setAccessible(true);
-      }
-      field.set(invokeOn, dataToAssign);
-    } catch (Exception e) {
-      throw new RuntimeException("Cant assign reflection field: "
-          + (field == null ? null : field.getName()) + ", on: "
-          + className(invokeOn) + ", with args: "
-          + classNameCollection(dataToAssign), e);
-    }
-  }
 
   /**
    * null safe iterator getter if the type if collection
@@ -1511,62 +865,6 @@ public class ConfigPropertiesCascadeCommonUtils  {
   }
 
   /**
-   * assign data to a field
-   * 
-   * @param field
-   *            is the field to assign to
-   * @param invokeOn
-   *            to call on or null for static
-   * @param dataToAssign
-   *            data
-   * @param overrideSecurity
-   *            true to call on protected or private etc methods
-   * @param typeCast
-   *            true if we should typecast
-   * @param annotationWithValueOverride
-   *            annotation with value of override, or null if none
-   */
-  @SuppressWarnings("unchecked")
-  public static void assignField(Field field, Object invokeOn,
-      Object dataToAssign, boolean overrideSecurity, boolean typeCast,
-      Class<? extends Annotation> annotationWithValueOverride) {
-
-    if (annotationWithValueOverride != null) {
-      // see if in annotation
-      Annotation annotation = field
-          .getAnnotation(annotationWithValueOverride);
-      if (annotation != null) {
-        
-         // type of the value, or String if not specific Class
-          // typeOfAnnotationValue = typeCast ? field.getType() :
-          // String.class; dataToAssign =
-          // AnnotationUtils.retrieveAnnotationValue(
-          // typeOfAnnotationValue, annotation, "value");
-        
-        throw new RuntimeException("Not supported");
-      }
-    }
-    assignField(field, invokeOn, dataToAssign, overrideSecurity, typeCast);
-  }
-
-  /**
-   * assign data to a field. Will find the field in superclasses, will
-   * typecast, and will override security (private, protected, etc)
-   * 
-   * @param invokeOn
-   *            to call on or null for static
-   * @param fieldName
-   *            method name to call
-   * @param dataToAssign
-   *            data
-   */
-  public static void assignField(Object invokeOn, String fieldName,
-      Object dataToAssign) {
-    assignField(null, invokeOn, fieldName, dataToAssign, true, true, true,
-        null);
-  }
-
-  /**
    * get a field object for a class, potentially in superclasses
    * 
    * @param theClass
@@ -1601,23 +899,6 @@ public class ConfigPropertiesCascadeCommonUtils  {
           + ", in: " + theClass + ", callOnSupers: " + callOnSupers);
     }
     return null;
-  }
-
-  /**
-   * return a set of Strings for a class and type. This is not for any
-   * supertypes, only for the type at hand. includes final fields
-   * 
-   * @param theClass the class to look for fields in
-   * @param fieldType
-   *            or null for all
-   * @param includeStaticFields when true, include static fields
-   * @return the set of strings, or the empty Set if none
-   */
-  @SuppressWarnings("unchecked")
-  public static Set<String> fieldNames(Class theClass, Class fieldType,
-      boolean includeStaticFields) {
-    return fieldNamesHelper(theClass, theClass, fieldType, true, true,
-        includeStaticFields, null, true);
   }
 
   /**
@@ -1922,63 +1203,6 @@ public class ConfigPropertiesCascadeCommonUtils  {
       
     }
     return differentFields;
-  }
-  
-  /**
-   * clone an object, assign primitives, Strings, maps of string attributes.  Clone GrouperCloneable fields.
-   * @param <T> the type
-   * @param object  the object to clone
-   * @param fieldsToClone the desired fields from the object
-   * @return the cloned object or null if input is null
-   */
-  @SuppressWarnings("unchecked")
-  public static <T> T clone(T object, Set<String> fieldsToClone) {
-    
-    //make a return object
-    T result = (T)newInstance(object.getClass());
-    
-    cloneFields(object, result, fieldsToClone);
-    
-    return result;
-  }
-  
-  /**
-   * clone an object, assign primitives, Strings, maps of string attributes.  Clone GrouperCloneable fields.
-   * @param <T> the type
-   * @param object  the object to clone
-   * @param result  the resulting object
-   * @param fieldsToClone the desired fields from the object
-   */
-  public static <T> void cloneFields(T object, T result,
-      Set<String> fieldsToClone) {
-    
-    if (object == result) {
-      return;
-    }
-    
-    //if either null, then all fields are different
-    if (object == null || result == null) {
-      throw new RuntimeException("Cant copy from or to null: " + className(object) + ", " + className(result));
-    }
-    
-    Class<?> fieldValueClass = null;
-    
-    for (String fieldName : nonNull(fieldsToClone)) {
-      try {
-        
-        Object fieldValue = fieldValue(object, fieldName);
-        fieldValueClass = fieldValue == null ? null : fieldValue.getClass();
-        
-        Object fieldValueToAssign = cloneValue(fieldValue);
-        
-        //assign the field to the clone
-        assignField(result, fieldName, fieldValueToAssign);
-        
-      } catch (RuntimeException re) {
-        throw new RuntimeException("Problem cloning field: " + object.getClass() 
-              + ", " + fieldName + ", " + fieldValueClass, re);
-      }
-    }
   }
   
   /**
@@ -3653,31 +2877,6 @@ public class ConfigPropertiesCascadeCommonUtils  {
   }
 
   /**
-   * assign data to a setter.  Will find the field in superclasses, will typecast, 
-   * and will override security (private, protected, etc)
-   * @param invokeOn to call on or null for static
-   * @param fieldName method name to call
-   * @param dataToAssign data  
-   * @param typeCast will typecast if true
-   * @throws RuntimeException if not there
-   */
-  public static void assignSetter(Object invokeOn, 
-      String fieldName, Object dataToAssign, boolean typeCast) {
-    Class invokeOnClass = invokeOn.getClass();
-    try {
-      Method setter = setter(invokeOnClass, fieldName, true, true);
-      setter.setAccessible(true);
-      if (typeCast) {
-        dataToAssign = typeCast(dataToAssign, setter.getParameterTypes()[0]);
-      }
-      setter.invoke(invokeOn, new Object[]{dataToAssign});
-    } catch (Exception e) {
-      throw new RuntimeException("Problem assigning setter: " + fieldName
-          + " on class: " + invokeOnClass + ", type of data is: " + className(dataToAssign), e);
-    }
-  }
-
-  /**
    * Test for setter method.
    * @param method the method to test for being a setter
    * @return true if the method starts with "set", has a void return type,
@@ -3896,185 +3095,6 @@ public class ConfigPropertiesCascadeCommonUtils  {
   }
 
   /**
-   * use reflection to get a property type based on getter or setter or field
-   * @param theClass the class
-   * @param propertyName the property name
-   * @return the property type
-   */
-  public static Class propertyType(Class theClass, String propertyName) {
-    Method method = getter(theClass, propertyName, true, false);
-    if (method != null) {
-      return method.getReturnType();
-    }
-    //use setter
-    method = setter(theClass, propertyName, true, false);
-    if (method != null) {
-      return method.getParameterTypes()[0];
-    }
-    //no setter or getter, use field
-    Field field = field(theClass, propertyName, true, true);
-    return field.getType();
-  }
-
-  /**
-   * If necessary, convert an object to another type.  if type is Object.class, just return the input.
-   * Do not convert null to an empty primitive
-   * @param <T> is template type
-   * @param value The object to cast
-   * @param theClass the type of class to cast to
-   * @return the object of that instance converted into something else
-   */
-  public static <T> T typeCast(Object value, Class<T> theClass) {
-    //default behavior is not to convert null to empty primitive
-    return typeCast(value, theClass, false, false);
-  }
-
-  /**
-   * <pre>
-   * make a new file in the name prefix dir.  If parent dir name is c:\temp
-   * and namePrefix is grouperDdl and nameSuffix is sql, then the file will be:
-   * 
-   * c:\temp\grouperDdl_20080721_13_45_43_123.sql
-   *  
-   * If the file exists, it will make a new filename, and create the empty file, and return it
-   * </pre>
-   *  
-   * @param parentDirName can be blank for current dir
-   * @param namePrefix the part before the date part
-   * @param nameSuffix the last part of file name (can contain dot or will be the extension
-   * @param createFile true to create the file
-   * @return the created file
-   */
-  public static File newFileUniqueName(String parentDirName, String namePrefix, String nameSuffix, boolean createFile) {
-    DateFormat fileNameFormat = new SimpleDateFormat("yyyyMMdd_HH_mm_ss_SSS");
-    if (!isBlank(parentDirName)) {
-
-      if (!parentDirName.endsWith("/") && !parentDirName.endsWith("\\")) {
-        parentDirName += File.separator;
-      }
-      
-      //make sure it exists and is a dir
-      File parentDir = new File(parentDirName);
-      if (!parentDir.exists()) {
-        if (!parentDir.mkdirs()) {
-          throw new RuntimeException("Cant make dir: " + parentDir.getAbsolutePath());
-        }
-      } else {
-        if (!parentDir.isDirectory()) {
-          throw new RuntimeException("Parent dir is not a directory: " + parentDir.getAbsolutePath());
-        } 
-      }
-      
-    } else {
-      //make it empty string so it will concatenate well
-      parentDirName = "";
-    }
-    //make sure suffix has a dot in it
-    if (!nameSuffix.contains(".")) {
-      nameSuffix = "." + nameSuffix;
-    }
-    
-    String fileName = parentDirName + namePrefix + "_" + fileNameFormat.format(new Date()) + nameSuffix;
-    int dotLocation = fileName.lastIndexOf('.');
-    String fileNamePre = fileName.substring(0,dotLocation);
-    String fileNamePost = fileName.substring(dotLocation);
-    File theFile = new File(fileName);
-
-    int i;
-    
-    for (i=0;i<1000;i++) {
-      
-      if (!theFile.exists()) {
-        break;
-      }
-      
-      fileName = fileNamePre + "_" + i + fileNamePost;
-      theFile = new File(fileName);
-      
-    }
-    
-    if (i>=1000) {
-      throw new RuntimeException("Cant find filename to create: " + fileName);
-    }
-    
-    if (createFile) {
-      try {
-        if (!theFile.createNewFile()) {
-          throw new RuntimeException("Cant create file, it returned false");
-        }
-      } catch (Exception e) {
-        throw new RuntimeException("Cant create file: " + fileName + ", make sure " +
-            "permissions and such are ok, or change file location in grouper.properties if applicable", e);
-      }
-    }
-    return theFile;
-  }
-  
-  /**
-   * <pre>
-   * Convert an object to a java.util.Date.  allows, dates, null, blank, 
-   * yyyymmdd or yyyymmdd hh24:mm:ss
-   * or yyyy/MM/dd HH:mm:ss.SSS
-   * </pre>
-   * @param inputObject
-   *          is the String or Date to convert
-   * 
-   * @return the Date
-   */
-  public static Date dateValue(Object inputObject) {
-    if (inputObject == null) {
-      return null;
-    } 
-
-    if (inputObject instanceof java.util.Date) {
-      return (Date)inputObject;
-    }
-
-    if (inputObject instanceof String) {
-      String input = (String)inputObject;
-      //trim and handle null and empty
-      if (isBlank(input)) {
-        return null;
-      }
-
-      try {
-        if (input.length() == 8) {
-          
-          return dateFormat().parse(input);
-        }
-        if (!contains(input, '.')) {
-          if (contains(input, '/')) {
-            return dateMinutesSecondsFormat.parse(input);
-          }
-          //else no slash
-          return dateMinutesSecondsNoSlashFormat.parse(input);
-        }
-        if (contains(input, '/')) {
-          //see if the period is 6 back
-          int lastDotIndex = input.lastIndexOf('.');
-          if (lastDotIndex == input.length() - 7) {
-            String nonNanoInput = input.substring(0,input.length()-3);
-            Date date = timestampFormat.parse(nonNanoInput);
-            //get the last 3
-            String lastThree = input.substring(input.length()-3,input.length());
-            int lastThreeInt = Integer.parseInt(lastThree);
-            Timestamp timestamp = new Timestamp(date.getTime());
-            timestamp.setNanos(timestamp.getNanos() + (lastThreeInt * 1000));
-            return timestamp;
-          }
-          return timestampFormat.parse(input);
-        }
-        //else no slash
-        return timestampNoSlashFormat.parse(input);
-      } catch (ParseException pe) {
-        throw new RuntimeException(errorStart + toStringForLog(input));
-      }
-    }
-    
-    throw new RuntimeException("Cannot convert Object to date : " + toStringForLog(inputObject));
-  }
-
-  /**
    * See if the input is null or if string, if it is empty or blank (whitespace)
    * @param input object to test for null or String to check for blank
    * @return true if null or blank string
@@ -4086,97 +3106,6 @@ public class ConfigPropertiesCascadeCommonUtils  {
     return (input instanceof String && isBlank((String)input));
   }
 
-  /**
-   * If necessary, convert an object to another type.  if type is Object.class, just return the input
-   * @param <T> is the type to return
-   * @param value The object to cast
-   * @param theClass The desired cast class type
-   * @param convertNullToDefaultPrimitive if the value is null, and theClass is primitive, should we
-   * convert the null to a primitive default value
-   * @param useNewInstanceHooks if theClass is not recognized, then honor the string "null", "newInstance",
-   * or get a constructor with one param, and call it
-   * @return the object of that instance converted into something else
-   */
-  @SuppressWarnings({ "unchecked", "cast" })
-  public static <T> T typeCast(Object value, Class<T> theClass, 
-      boolean convertNullToDefaultPrimitive, boolean useNewInstanceHooks) {
-    
-    if (Object.class.equals(theClass)) {
-      return (T)value;
-    }
-    
-    if (value==null) {
-      if (convertNullToDefaultPrimitive && theClass.isPrimitive()) {
-        if ( theClass == boolean.class ) {
-          return (T)Boolean.FALSE;
-        }
-        if ( theClass == char.class ) {
-          return (T)(Object)0;
-        }
-        //convert 0 to the type
-        return typeCast(0, theClass, false, false);
-      }
-      return null;
-    }
-  
-    if (theClass.isInstance(value)) {
-      return (T)value;
-    }
-    
-    //if array, get the base class
-    if (theClass.isArray() && theClass.getComponentType() != null) {
-      theClass = (Class<T>)theClass.getComponentType();
-    }
-    Object resultValue = null;
-    //loop through and see the primitive types etc
-    if (theClass.equals(Date.class)) {
-      resultValue = dateValue(value);
-    } else if (theClass.equals(String.class)) {
-      resultValue = stringValue(value);
-    } else if (theClass.equals(Timestamp.class)) {
-      resultValue = toTimestamp(value);
-    } else if (theClass.equals(Boolean.class) || theClass.equals(boolean.class)) {
-      resultValue = booleanObjectValue(value);
-    } else if (theClass.equals(Integer.class) || theClass.equals(int.class)) {
-      resultValue = intObjectValue(value, true);
-    } else if (theClass.equals(Double.class) || theClass.equals(double.class)) {
-      resultValue = doubleObjectValue(value, true);
-    } else if (theClass.equals(Float.class) || theClass.equals(float.class)) {
-      resultValue = floatObjectValue(value, true);
-    } else if (theClass.equals(Long.class) || theClass.equals(long.class)) {
-      resultValue = longObjectValue(value, true);
-    } else if (theClass.equals(Byte.class) || theClass.equals(byte.class)) {
-      resultValue = byteObjectValue(value);
-    } else if (theClass.equals(Character.class) || theClass.equals(char.class)) {
-      resultValue = charObjectValue(value);
-    } else if (theClass.equals(Short.class) || theClass.equals(short.class)) {
-      resultValue = shortObjectValue(value);
-    } else if ( theClass.isEnum() && (value instanceof String) ) {
-      resultValue = Enum.valueOf((Class)theClass, (String) value);
-    } else if ( theClass.equals(Class.class) && (value instanceof String) ) {
-      resultValue = forName((String)value);
-    } else if (useNewInstanceHooks && value instanceof String) {
-      String stringValue = (String)value;
-      if ( equals("null", stringValue)) {
-        resultValue = null;
-      } else if (equals("newInstance", stringValue)) {
-        resultValue = newInstance(theClass);
-      } else { // instantiate using string
-        //note, we could typecast this to fit whatever is there... right now this is used for annotation
-        try {
-          Constructor constructor = theClass.getConstructor(new Class[] {String.class} );
-          resultValue = constructor.newInstance(new Object[] {stringValue} );            
-        } catch (Exception e) {
-          throw new RuntimeException("Cant find constructor with string for class: " + theClass);
-        }
-      }
-    } else {
-      throw new RuntimeException("Cannot convert from type: " + value.getClass() + " to type: " + theClass);
-    }
-  
-    return (T)resultValue;
-  }
-  
   /**
    * see if a class is a scalar (not bean, not array or list, etc)
    * @param type the type to check
@@ -7226,26 +6155,6 @@ public class ConfigPropertiesCascadeCommonUtils  {
     return value;
   }
   
-  /** add an option: --whatever=val   to a map of options where --whatever is key, and val is value 
-   * @param args Arguments array
-   * @return the map
-   */
-  public static Map<String, String> argMap(String[] args) {
-    
-    Map<String, String> result = new LinkedHashMap<String, String>();
-
-    for (String arg : nonNull(args,String.class)) {
-      String key = argKey(arg);
-      String value = argValue(arg);
-      if (result.containsKey(key)) {
-        throw new RuntimeException("Passing key twice: " + key);
-      }
-      result.put(key, value);
-    }
-    
-    return result;
-  }
-  
   /**
    * get the value from the argMap, throw exception if not there and required
    * @param argMap map of argument key/values
@@ -7777,55 +6686,6 @@ public class ConfigPropertiesCascadeCommonUtils  {
     }
     System.err.println("Grouper error: " + error);
     return false;
-  }
-
-  /**
-   * make sure a property is a class of a certain type
-   * @param resourceName the property resource name
-   * @param properties the set of properties 
-   * @param overrideMap for testing, to override some properties values
-   * @param key the lookup key
-   * @param classType the desired class type
-   * @param required whether or not a value is required
-   * @param exceptionOnError throw an exception when there is an error
-   * @return true if ok
-   */
-  public static boolean propertyValidateValueClass(String resourceName, Properties properties, 
-      Map<String, String> overrideMap, String key, Class<?> classType, boolean required, boolean exceptionOnError) {
-  
-    if (required && !propertyValidateValueRequired(resourceName, properties, 
-        overrideMap, key, exceptionOnError)) {
-      return false;
-    }
-    String value = propertiesValue(properties, overrideMap, key);
-  
-    //maybe ok not there
-    if (!required && isBlank(value)) {
-      return true;
-    }
-    
-    String extraError = "";
-    try {
-      
-      
-      Class<?> theClass = forName(value);
-      if (classType.isAssignableFrom(theClass)) {
-        return true;
-      }
-      extraError = " does not derive from class: " + classType.getSimpleName();
-      
-    } catch (Exception e) {
-      extraError = ", " + getFullStackTrace(e);
-    }
-    String error = "Cant process property " + key + " in resource: " + resourceName + ", the current" +
-        " value is '" + value + "', which should be of type: " 
-        + classType.getName() + extraError;
-    if (exceptionOnError) {
-      throw new RuntimeException(error);
-    }
-    System.err.println("Grouper error: " + error);
-    return false;
-
   }
 
   /**
@@ -9006,38 +7866,6 @@ public class ConfigPropertiesCascadeCommonUtils  {
       this.exitCode = _exitCode;
     }
 
-
-    
-    /**
-     * If any error text was generated by the call, it will be set here.
-     * @return the errorText
-     */
-    public String getErrorText() {
-      return this.errorText;
-    }
-
-
-    
-    /**
-     * If any output text was generated by the call, it will be set here.
-     * @return the outputText
-     */
-    public String getOutputText() {
-      return this.outputText;
-    }
-
-
-    
-    /**
-     * If any exit code was generated by the call, it will be set here.
-     * @return the exitCode
-     */
-    public int getExitCode() {
-      return this.exitCode;
-    }
-    
-    
-    
   }
 
   /**
@@ -9055,157 +7883,6 @@ public class ConfigPropertiesCascadeCommonUtils  {
       return thread;
     }
   
-  }
-
-  /**
-   * serialize an object to a file (create parent dir if necessary)
-   * @param object the serializable object
-   * @param file the destination file
-   */
-  public static void serializeObjectToFile(Serializable object, File file) {
-
-    //delete, make sure parents are there
-    deleteCreateFile(file);
-
-    FileOutputStream fos = null;
-    ObjectOutputStream out = null;
-    try {
-      fos = new FileOutputStream(file);
-      out = new ObjectOutputStream(fos);
-      out.writeObject(object);
-    } catch(IOException ex) {
-      //we had a problem, don't leave the file partway created...
-      closeQuietly(out);
-      out = null;
-      closeQuietly(fos);
-      deleteFile(file);
-      throw new RuntimeException("Error writing file: " + absolutePath(file)
-          + ", " + className(object), ex);
-    } finally {
-      closeQuietly(out);
-      closeQuietly(fos);
-    }
-    
-  }
-
-  /**
-   * unserialize an object from a file if it exists
-   * @param file the file containing the serialized object
-   * @param nullIfException true if null should be returned instead of exception
-   * @param deleteFileOnException true if file should be deleted on exception
-   * @return the object or null
-   */
-  public static Serializable unserializeObjectFromFile(File file, boolean nullIfException,
-      boolean deleteFileOnException) {
-    
-    if (!file.exists() || file.length() == 0) {
-      return null;
-    }
-    
-    FileInputStream fis = null;
-    ObjectInputStream ois = null;
-    try {
-      fis = new FileInputStream(file);
-      ois = new ObjectInputStream(fis);
-      return (Serializable)ois.readObject();
-    } catch(Exception ex) {
-      String error = "Error writing file: " + absolutePath(file);
-      if (!nullIfException) {
-        throw new RuntimeException(error, ex);
-      }
-      //maybe clear the file if problem
-      if (deleteFileOnException) {
-        //close before deleting
-        closeQuietly(ois);
-        ois = null;
-        closeQuietly(fis);
-        deleteFile(file);
-      }
-      return null;
-    } finally {
-      closeQuietly(ois);
-      closeQuietly(fis);
-    }
-    
-  }
-  
-  /**
-   * delete and create a new file.  If its a directory, delete, and create a new dir.
-   * 
-   * @param file
-   *          is the file to delete and create
-   */
-  public static void deleteCreateFile(File file) {
-
-    deleteFile(file);
-
-    createParentDirectories(file);
-
-    try {
-      if (!file.createNewFile()) {
-        throw new IOException("createNewFile returned false: ");
-      }
-    } catch (IOException ioe) {
-      throw new RuntimeException("Couldnt create new file: " + file.toString(), ioe);
-    }
-
-  }
-
-  /**
-   * Delete a file, throw exception if cannot
-   * @param file the file or directory to delete
-   */
-  public static void deleteFile(File file) {
-    //delete and create
-    if (file != null && file.exists()) {
-
-      if (file.isDirectory()) {
-        deleteRecursiveDirectory(file.getAbsolutePath());
-      } else if (!file.delete()) {
-        throw new RuntimeException("Couldnt delete file: " + file.toString());
-      }
-    }
-  }
-
-  /**
-   * copy a file to a new file
-   * @param fromFile source file
-   * @param toFile target file
-   */
-  public static void copy(File fromFile, File toFile) {
-    if (toFile.exists()) {
-      deleteFile(toFile);
-    }
-    FileInputStream fromFileStream = null;
-    FileOutputStream toFileStream = null;
-    try {
-      fromFileStream = new FileInputStream(fromFile);
-      toFileStream = new FileOutputStream(toFile);
-      copy(fromFileStream, toFileStream);
-    } catch (Exception e) {
-      closeQuietly(toFileStream);
-      closeQuietly(fromFileStream);
-      throw new RuntimeException("Problem copying file: " + fromFile.getAbsolutePath() 
-          + " to file: " + toFile.getAbsolutePath());
-    } finally {
-      closeQuietly(toFileStream);
-      closeQuietly(fromFileStream);
-    }
-    
-  }
-
-  /**
-   * rename a file to another file and throw runtime exception if not ok
-   * @param fromFile source file
-   * @param toFile target file
-   */
-  public static void renameTo(File fromFile, File toFile) {
-
-    if (!fromFile.renameTo(toFile)) {
-      throw new RuntimeException("Cannot rename file: '" + fromFile.getAbsolutePath() 
-          + "', to file: '" + toFile.getAbsolutePath() + "'");
-    }
-
   }
 
   /**
@@ -9257,59 +7934,8 @@ public class ConfigPropertiesCascadeCommonUtils  {
   }
 
   /**
-   * absolute path null safe
-   * @param file the absolute path of the given file, or null
-   * @return absolute path null safe
-   */
-  public static String absolutePath(File file) {
-    return file == null ? null : file.getAbsolutePath();
-  }
-
-
-  /**
    * pattern to get the file path or resource location for a file
    */
   private static Pattern fileLocationPattern = Pattern.compile("^(file|classpath)\\s*:(.*)$");
-  
-  /**
-   * file or classpath location
-   * @param typeAndLocation the string describing the resource. Begins with "file:" or "classpath:".
-   * @param logHint used as prefix for RuntimeException messages
-   * @return the inputstream
-   */
-  public static InputStream fileOrClasspathInputstream(String typeAndLocation, String logHint) {
-    Matcher matcher = fileLocationPattern.matcher(typeAndLocation);
-    if (!matcher.matches()) {
-      throw new RuntimeException(logHint + " must start with file: or classpath:");
-    }
-    String typeString = matcher.group(1);
-    String location = trim(matcher.group(2));
-    
-    if (equals(typeString, "file")) {
-      File file = new File(location);
-      if (!file.exists() || !file.isFile()) {
-        throw new RuntimeException(logHint + " File does not exist: " + file.getAbsolutePath());
-      }
-      try {
-        return new FileInputStream(file);
-      } catch (Exception e) {
-        throw new RuntimeException(logHint + " Problem with file: " + file.getAbsolutePath());
-      }
-    } else if (equals(typeString, "classpath")) {
-      if (!location.startsWith("/")) {
-        location = "/" + location;
-      }
-      try {
-        return ConfigPropertiesCascadeCommonUtils.class.getResourceAsStream(location);
-      } catch (Exception e) {
-        throw new RuntimeException(logHint + " Problem with classpath location: " + location);
-      }
-    } else {
-      throw new RuntimeException(logHint + " Not expecting type string: " + typeString);
-    }
-    
-  }
-  
-
 
 }

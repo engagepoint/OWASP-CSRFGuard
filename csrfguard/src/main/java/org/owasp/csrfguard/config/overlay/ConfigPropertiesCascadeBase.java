@@ -1211,50 +1211,6 @@ public abstract class ConfigPropertiesCascadeBase {
 	}
 
 	/**
-	 * make sure a property is a class of a certain type
-	 * @param key property key
-	 * @param classType Desired class type
-	 * @param required Whether or not key must be present and have non-blank value
-	 * @return true if ok
-	 */
-	public boolean assertPropertyValueClass(
-			String key, Class<?> classType, boolean required) {
-
-		if (required && !assertPropertyValueRequired(key)) {
-			return false;
-		}
-		String value = propertyValueString(key);
-
-		//maybe ok not there
-		if (!required && ConfigPropertiesCascadeUtils.isBlank(value)) {
-			return true;
-		}
-
-		String extraError = "";
-		try {
-
-
-			Class<?> theClass = ConfigPropertiesCascadeUtils.forName(value);
-			if (classType.isAssignableFrom(theClass)) {
-				return true;
-			}
-			extraError = " does not derive from class: " + classType.getSimpleName();
-
-		} catch (Exception e) {
-			extraError = ", " + ConfigPropertiesCascadeUtils.getFullStackTrace(e);
-		}
-		String error = "Cant process property " + key + " in resource: " + this.getMainConfigClasspath() + ", the current" +
-				" value is '" + value + "', which should be of type: " 
-				+ classType.getName() + extraError;
-		System.err.println("csrf guard error: " + error);
-		ILogger iLogger = iLogger();
-		if (iLogger != null) {
-			iLogger.log(LogLevel.Error, error);
-		}
-		return false;
-	}
-
-	/**
 	 * find all keys/values with a certain pattern in a properties file.
 	 * return the keys.  if none, will return the empty set, not null set
 	 * @param pattern expression matched against property names
