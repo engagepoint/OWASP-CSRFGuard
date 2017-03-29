@@ -38,13 +38,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.PushbackInputStream;
 import java.io.Reader;
-import java.io.Serializable;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
@@ -88,7 +85,6 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -8966,78 +8962,6 @@ public class ConfigPropertiesCascadeCommonUtils  {
   
   }
 
-  /**
-   * serialize an object to a file (create parent dir if necessary)
-   * @param object the serializable object
-   * @param file the destination file
-   */
-  public static void serializeObjectToFile(Serializable object, File file) {
-
-    //delete, make sure parents are there
-    deleteCreateFile(file);
-
-    FileOutputStream fos = null;
-    ObjectOutputStream out = null;
-    try {
-      fos = new FileOutputStream(file);
-      out = new ObjectOutputStream(fos);
-      out.writeObject(object);
-    } catch(IOException ex) {
-      //we had a problem, don't leave the file partway created...
-      closeQuietly(out);
-      out = null;
-      closeQuietly(fos);
-      deleteFile(file);
-      throw new RuntimeException("Error writing file: " + absolutePath(file)
-          + ", " + className(object), ex);
-    } finally {
-      closeQuietly(out);
-      closeQuietly(fos);
-    }
-    
-  }
-
-  /**
-   * unserialize an object from a file if it exists
-   * @param file the file containing the serialized object
-   * @param nullIfException true if null should be returned instead of exception
-   * @param deleteFileOnException true if file should be deleted on exception
-   * @return the object or null
-   */
-  public static Serializable unserializeObjectFromFile(File file, boolean nullIfException,
-      boolean deleteFileOnException) {
-    
-    if (!file.exists() || file.length() == 0) {
-      return null;
-    }
-    
-    FileInputStream fis = null;
-    ObjectInputStream ois = null;
-    try {
-      fis = new FileInputStream(file);
-      ois = new ObjectInputStream(fis);
-      return (Serializable)ois.readObject();
-    } catch(Exception ex) {
-      String error = "Error writing file: " + absolutePath(file);
-      if (!nullIfException) {
-        throw new RuntimeException(error, ex);
-      }
-      //maybe clear the file if problem
-      if (deleteFileOnException) {
-        //close before deleting
-        closeQuietly(ois);
-        ois = null;
-        closeQuietly(fis);
-        deleteFile(file);
-      }
-      return null;
-    } finally {
-      closeQuietly(ois);
-      closeQuietly(fis);
-    }
-    
-  }
-  
   /**
    * delete and create a new file.  If its a directory, delete, and create a new dir.
    * 
