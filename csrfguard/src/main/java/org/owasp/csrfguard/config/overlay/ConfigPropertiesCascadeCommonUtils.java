@@ -3980,7 +3980,7 @@ public class ConfigPropertiesCascadeCommonUtils  {
     int dotLocation = fileName.lastIndexOf('.');
     String fileNamePre = fileName.substring(0,dotLocation);
     String fileNamePost = fileName.substring(dotLocation);
-    File theFile = new File(fileName);
+    File theFile = new File(FilenameUtils.getName(fileName));
 
     int i;
     
@@ -3991,7 +3991,7 @@ public class ConfigPropertiesCascadeCommonUtils  {
       }
       
       fileName = fileNamePre + "_" + i + fileNamePost;
-      theFile = new File(fileName);
+      theFile = new File(FilenameUtils.getName(fileName));
       
     }
     
@@ -4985,7 +4985,7 @@ public class ConfigPropertiesCascadeCommonUtils  {
     String fileName = parentDir == null ? null 
         : (stripLastSlashIfExists(fileCanonicalPath(parentDir)) + File.separator + resourceName);
     File configFile = fileName == null ? null 
-        : new File(fileName);
+        : new File(FilenameUtils.getName(fileName));
 
     return readFileIntoString(configFile);
   }
@@ -5357,7 +5357,7 @@ public class ConfigPropertiesCascadeCommonUtils  {
         String fileName = parentDir == null ? null 
             : (stripLastSlashIfExists(fileCanonicalPath(parentDir)) + File.separator + resourceName);
         File configFile = fileName == null ? null 
-            : new File(fileName);
+            : new File(FilenameUtils.getName(fileName));
 
         try {
           //looks like we have a match
@@ -5827,7 +5827,7 @@ public class ConfigPropertiesCascadeCommonUtils  {
     //see if it is a file reference
     if (theIn.indexOf(File.separatorChar) != -1 && !disableExternalFileLookup) {
       //read the contents of the file into a string
-      theIn = readFileIntoString(new File(theIn));
+      theIn = readFileIntoString(new File(FilenameUtils.getName(theIn)));
       return theIn;
     }
     return in;
@@ -7369,7 +7369,7 @@ public class ConfigPropertiesCascadeCommonUtils  {
       return null;
     }
     //read from file
-    File file = new File(argString);
+    File file = new File(FilenameUtils.getName(argString));
     try {
       //do this by regex, since we dont know what platform we are on
       String listString = readFileIntoString(file);
@@ -7475,7 +7475,7 @@ public class ConfigPropertiesCascadeCommonUtils  {
       CodeSource codeSource = sampleClass.getProtectionDomain().getCodeSource();
       if (codeSource != null && codeSource.getLocation() != null) {
         String fileName = URLDecoder.decode(codeSource.getLocation().getFile(), "UTF-8");
-        return new File(fileName);
+        return new File(FilenameUtils.getName(fileName));
       }
       String resourcePath = sampleClass.getName();
       resourcePath = resourcePath.replace('.', '/') + ".class";
@@ -9127,7 +9127,7 @@ public class ConfigPropertiesCascadeCommonUtils  {
    */
   public static void deleteRecursiveDirectory(String dirName) {
     //delete all files in the directory
-    File dir = new File(dirName);
+    File dir = new File(FilenameUtils.getName(dirName));
 
     //if it doesnt exist then we are done
     if (!dir.exists()) {
@@ -9195,7 +9195,7 @@ public class ConfigPropertiesCascadeCommonUtils  {
     String location = trim(matcher.group(2));
     
     if (equals(typeString, "file")) {
-      File file = new File(location);
+      File file = new File(FilenameUtils.getName(location));
       if (!file.exists() || !file.isFile()) {
         throw new RuntimeException(logHint + " File does not exist: " + file.getAbsolutePath());
       }
