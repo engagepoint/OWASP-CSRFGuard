@@ -7541,7 +7541,6 @@ public class ConfigPropertiesCascadeCommonUtils  {
          passwordString = br.readLine(); 
       } catch (IOException ioe) { 
          System.out.println("IO error! " + getFullStackTrace(ioe));
-         System.exit(1); 
       } 
 
     } else {
@@ -9078,11 +9077,13 @@ public class ConfigPropertiesCascadeCommonUtils  {
       //we had a problem, don't leave the file partway created...
       closeQuietly(out);
       out = null;
+      closeQuietly(fos);
       deleteFile(file);
       throw new RuntimeException("Error writing file: " + absolutePath(file)
           + ", " + className(object), ex);
     } finally {
       closeQuietly(out);
+      closeQuietly(fos);
     }
     
   }
@@ -9117,11 +9118,13 @@ public class ConfigPropertiesCascadeCommonUtils  {
         //close before deleting
         closeQuietly(ois);
         ois = null;
+        closeQuietly(fis);
         deleteFile(file);
       }
       return null;
     } finally {
       closeQuietly(ois);
+      closeQuietly(fis);
     }
     
   }
@@ -9180,8 +9183,13 @@ public class ConfigPropertiesCascadeCommonUtils  {
       toFileStream = new FileOutputStream(toFile);
       copy(fromFileStream, toFileStream);
     } catch (Exception e) {
+      closeQuietly(toFileStream);
+      closeQuietly(fromFileStream);
       throw new RuntimeException("Problem copying file: " + fromFile.getAbsolutePath() 
           + " to file: " + toFile.getAbsolutePath());
+    } finally {
+      closeQuietly(toFileStream);
+      closeQuietly(fromFileStream);
     }
     
   }
