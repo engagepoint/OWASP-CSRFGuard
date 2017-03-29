@@ -151,6 +151,8 @@ public class CsrfGuardServletContextListener implements ServletContextListener {
 		/** nothing to do **/
 	}
 
+	// the resourceName parameter comes only from Sefrvlet Context init parameters or hardcoded strings and it can't be exploited
+	@SuppressWarnings("findsecbugs:PATH_TRAVERSAL_IN")
 	private InputStream getResourceStream(String resourceName, ServletContext context, boolean failIfNotFound) throws IOException {
 		InputStream is = null;
 
