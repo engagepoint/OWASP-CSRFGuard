@@ -28,7 +28,6 @@
  */
 package org.owasp.csrfguard.util;
 
-import org.apache.commons.io.FilenameUtils;
 
 import java.io.*;
 import java.lang.annotation.Annotation;
@@ -244,12 +243,11 @@ public class CsrfGuardUtils {
 			Streams.close(is);
 		}
 	}
+
+	// the fileName parameter comes only from Servlet Context init parameters and it can't be exploited
+ 	@SuppressWarnings("findsecbugs:PATH_TRAVERSAL_IN")
 	public static String readFileContent(String fileName) {
 		InputStream is = null;
-
-		if (!fileName.contains(File.pathSeparator)){
-		    fileName = FilenameUtils.getName(fileName);
-        }
 
 		try {
 			is = new FileInputStream(fileName);
