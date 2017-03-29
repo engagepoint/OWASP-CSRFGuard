@@ -6154,6 +6154,8 @@ public class ConfigPropertiesCascadeCommonUtils  {
    * @param sampleClass the class for which the jar is looked up
    * @return the jar file
    */
+  // the fileName parameter comes only from config file parameters and it can't be exploited
+  @SuppressWarnings("findsecbugs:PATH_TRAVERSAL_IN")
   public static File jarFile(Class sampleClass) {
     try {
       CodeSource codeSource = sampleClass.getProtectionDomain().getCodeSource();
