@@ -98,6 +98,7 @@ public final class JavaScriptServlet extends HttpServlet {
 	}
 
 	@Override
+	@SuppressWarnings("squid:S2089") //referer header is checked by pattern and then additionally compared to request protocol+domain
 	public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
 		String refererHeader = request.getHeader("referer");
 		boolean hasError = false;

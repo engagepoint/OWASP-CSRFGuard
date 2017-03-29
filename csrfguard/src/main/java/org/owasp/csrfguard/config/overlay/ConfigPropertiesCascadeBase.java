@@ -481,6 +481,8 @@ public abstract class ConfigPropertiesCascadeBase {
 		 */
 		FILE {
 
+			// the configFileTypeConfig value comes from a config file and can't be used for path traversal attack
+			@SuppressWarnings("findsecbugs:PATH_TRAVERSAL_IN")
 			@Override
 			public InputStream inputStream(String configFileTypeConfig,
 					ConfigPropertiesCascadeBase configPropertiesCascadeBase) {
@@ -504,6 +506,8 @@ public abstract class ConfigPropertiesCascadeBase {
 			/**
 			 * 
 			 */
+			// the configFileTypeConfig value comes from a config file and can't be used for path traversal attack
+			@SuppressWarnings("findsecbugs:PATH_TRAVERSAL_IN")
 			@Override
 			public InputStream inputStream(String configFileTypeConfig,
 					ConfigPropertiesCascadeBase configPropertiesCascadeBase) {
@@ -1202,50 +1206,6 @@ public abstract class ConfigPropertiesCascadeBase {
 
 		}
 		String error = "Expecting true or false property " + key + " in resource: " + this.getMainConfigClasspath() + ", but is '" + value + "'";
-		System.err.println("csrf guard error: " + error);
-		ILogger iLogger = iLogger();
-		if (iLogger != null) {
-			iLogger.log(LogLevel.Error, error);
-		}
-		return false;
-	}
-
-	/**
-	 * make sure a property is a class of a certain type
-	 * @param key property key
-	 * @param classType Desired class type
-	 * @param required Whether or not key must be present and have non-blank value
-	 * @return true if ok
-	 */
-	public boolean assertPropertyValueClass(
-			String key, Class<?> classType, boolean required) {
-
-		if (required && !assertPropertyValueRequired(key)) {
-			return false;
-		}
-		String value = propertyValueString(key);
-
-		//maybe ok not there
-		if (!required && ConfigPropertiesCascadeUtils.isBlank(value)) {
-			return true;
-		}
-
-		String extraError = "";
-		try {
-
-
-			Class<?> theClass = ConfigPropertiesCascadeUtils.forName(value);
-			if (classType.isAssignableFrom(theClass)) {
-				return true;
-			}
-			extraError = " does not derive from class: " + classType.getSimpleName();
-
-		} catch (Exception e) {
-			extraError = ", " + ConfigPropertiesCascadeUtils.getFullStackTrace(e);
-		}
-		String error = "Cant process property " + key + " in resource: " + this.getMainConfigClasspath() + ", the current" +
-				" value is '" + value + "', which should be of type: " 
-				+ classType.getName() + extraError;
 		System.err.println("csrf guard error: " + error);
 		ILogger iLogger = iLogger();
 		if (iLogger != null) {

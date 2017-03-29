@@ -10,6 +10,7 @@ import java.util.Properties;
 
 import org.owasp.csrfguard.config.ConfigurationProvider;
 import org.owasp.csrfguard.config.ConfigurationProviderFactory;
+import org.owasp.csrfguard.config.ConfigurationProviderFactoryClassesMapHolder;
 import org.owasp.csrfguard.config.PropertiesConfigurationProviderFactory;
 import org.owasp.csrfguard.util.CsrfGuardUtils;
 
@@ -61,7 +62,7 @@ public class ConfigurationAutodetectProviderFactory implements
 							if (ConfigurationAutodetectProviderFactory.class.getName().equals(factoryClassName)) {
 								throw new RuntimeException("Cannot specify auto detect factory in override file (recursion), pick the actual factory: " + factoryClassName);
 							}
-							factoryClass = CsrfGuardUtils.forName(factoryClassName);
+							factoryClass = ConfigurationProviderFactoryClassesMapHolder.INSTANCE.getClass(factoryClassName);
 						}
 					}
 					

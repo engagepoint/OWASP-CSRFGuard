@@ -28,6 +28,7 @@
  */
 package org.owasp.csrfguard.util;
 
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -201,23 +202,7 @@ public class CsrfGuardUtils {
 		}
 	}
 
-
-	/**
-	 * <pre>Returns the class object.</pre>
-	 * @param origClassName is fully qualified
-	 * @return the class
-	 */
-	public static Class forName(String origClassName) {
-
-		try {
-			return Class.forName(origClassName);
-		} catch (Throwable t) {
-			throw new RuntimeException("Problem loading class: " + origClassName, t);
-		}
-
-	}
-
-	public static String getInitParameter(ServletConfig servletConfig, String name, 
+	public static String getInitParameter(ServletConfig servletConfig, String name,
 			String configFileDefaultParamValue, String defaultValue) {
 		String value = servletConfig.getInitParameter(name);
 
@@ -249,6 +234,9 @@ public class CsrfGuardUtils {
 			Streams.close(is);
 		}
 	}
+
+	// the fileName parameter comes only from Servlet Context init parameters and it can't be exploited
+ 	@SuppressWarnings("findsecbugs:PATH_TRAVERSAL_IN")
 	public static String readFileContent(String fileName) {
 		InputStream is = null;
 

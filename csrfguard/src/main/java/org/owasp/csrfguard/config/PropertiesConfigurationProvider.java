@@ -43,6 +43,8 @@ import javax.servlet.ServletConfig;
 
 import org.owasp.csrfguard.CsrfGuardServletContextListener;
 import org.owasp.csrfguard.action.IAction;
+import org.owasp.csrfguard.action.IActionClassesMapHolder;
+import org.owasp.csrfguard.log.ILogerClassesMapHolder;
 import org.owasp.csrfguard.log.ILogger;
 import org.owasp.csrfguard.servlet.JavaScriptServlet;
 import org.owasp.csrfguard.util.CsrfGuardUtils;
@@ -115,7 +117,8 @@ public class PropertiesConfigurationProvider implements ConfigurationProvider {
 			protectedMethods = new HashSet<String>();
 			unprotectedMethods = new HashSet<String>();
 			/** load simple properties **/
-			logger = (ILogger) Class.forName(propertyString(properties, "org.owasp.csrfguard.Logger", "org.owasp.csrfguard.log.ConsoleLogger")).newInstance();
+			logger = ILogerClassesMapHolder.INSTANCE.getClass(
+                    propertyString(properties, "org.owasp.csrfguard.Logger", "org.owasp.csrfguard.log.ConsoleLogger")).newInstance();
 			tokenName = propertyString(properties, "org.owasp.csrfguard.TokenName", "OWASP_CSRFGUARD");
 			tokenLength = Integer.parseInt(propertyString(properties, "org.owasp.csrfguard.TokenLength", "32"));
 			rotate = Boolean.valueOf(propertyString(properties, "org.owasp.csrfguard.Rotate", "false"));
@@ -154,7 +157,7 @@ public class PropertiesConfigurationProvider implements ConfigurationProvider {
 					/** action name/class **/
 					if (index < 0) {
 						String actionClass = propertyString(properties, key);
-						IAction action = (IAction) Class.forName(actionClass).newInstance();
+						IAction action = IActionClassesMapHolder.INSTANCE.getClass(actionClass).newInstance();
 	
 						action.setName(directive);
 						actionsMap.put(action.getName(), action);
