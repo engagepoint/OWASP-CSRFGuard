@@ -28,6 +28,24 @@
  */
 package org.owasp.csrfguard;
 
+import org.owasp.csrfguard.action.IAction;
+import org.owasp.csrfguard.config.ConfigurationProvider;
+import org.owasp.csrfguard.config.ConfigurationProviderFactory;
+import org.owasp.csrfguard.config.ConfigurationProviderFactoryMap;
+import org.owasp.csrfguard.config.NullConfigurationProvider;
+import org.owasp.csrfguard.config.PropertiesConfigurationProviderFactory;
+import org.owasp.csrfguard.config.overlay.ExpirableCache;
+import org.owasp.csrfguard.log.ILogger;
+import org.owasp.csrfguard.log.LogLevel;
+import org.owasp.csrfguard.servlet.JavaScriptServlet;
+import org.owasp.csrfguard.util.CsrfGuardUtils;
+import org.owasp.csrfguard.util.RandomGenerator;
+import org.owasp.csrfguard.util.Streams;
+import org.owasp.csrfguard.util.Writers;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
@@ -40,25 +58,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Pattern;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
-import org.owasp.csrfguard.action.IAction;
-import org.owasp.csrfguard.config.ConfigurationProvider;
-import org.owasp.csrfguard.config.ConfigurationProviderFactory;
-import org.owasp.csrfguard.config.NullConfigurationProvider;
-import org.owasp.csrfguard.config.PropertiesConfigurationProvider;
-import org.owasp.csrfguard.config.PropertiesConfigurationProviderFactory;
-import org.owasp.csrfguard.config.overlay.ExpirableCache;
-import org.owasp.csrfguard.log.ILogger;
-import org.owasp.csrfguard.log.LogLevel;
-import org.owasp.csrfguard.servlet.JavaScriptServlet;
-import org.owasp.csrfguard.util.CsrfGuardUtils;
-import org.owasp.csrfguard.util.RandomGenerator;
-import org.owasp.csrfguard.util.Streams;
-import org.owasp.csrfguard.util.Writers;
 
 public final class CsrfGuard {
 
@@ -103,14 +102,17 @@ public final class CsrfGuard {
 	private ConfigurationProvider retrieveNewConfig() {
 		ConfigurationProvider configurationProvider = null;
 		//lets see what provider we are using
-		String configurationProviderFactoryClassName = this.properties.getProperty(
-				"org.owasp.csrfguard.configuration.provider.factory", PropertiesConfigurationProviderFactory.class.getName());
+        String configurationProviderFactoryClassName = this.properties
+                .getProperty("org.owasp.csrfguard.configuration.provider.factory",
+                        PropertiesConfigurationProviderFactory.class.getName());
 
-		Class<ConfigurationProviderFactory> configurationProviderFactoryClass = CsrfGuardUtils.forName(configurationProviderFactoryClassName);
-		
-		ConfigurationProviderFactory configurationProviderFactory = CsrfGuardUtils.newInstance(configurationProviderFactoryClass);
-							
-		configurationProvider = configurationProviderFactory.retrieveConfiguration(this.properties);
+		Class<? extends ConfigurationProviderFactory> configurationProviderFactoryClass = ConfigurationProviderFactoryMap
+                .get(configurationProviderFactoryClassName);
+
+        ConfigurationProviderFactory configurationProviderFactory = CsrfGuardUtils
+                .newInstance(configurationProviderFactoryClass);
+
+        configurationProvider = configurationProviderFactory.retrieveConfiguration(this.properties);
 		configurationProviderExpirableCache.put(Boolean.TRUE, configurationProvider);
 		return configurationProvider;
 	}

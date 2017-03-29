@@ -196,23 +196,7 @@ public class CsrfGuardUtils {
 		}
 	}
 
-
-	/**
-	 * <pre>Returns the class object.</pre>
-	 * @param origClassName is fully qualified
-	 * @return the class
-	 */
-	public static Class forName(String origClassName) {
-
-		try {
-			return Class.forName(origClassName);
-		} catch (Throwable t) {
-			throw new RuntimeException("Problem loading class: " + origClassName, t);
-		}
-
-	}
-
-	public static String getInitParameter(ServletConfig servletConfig, String name, 
+	public static String getInitParameter(ServletConfig servletConfig, String name,
 			String configFileDefaultParamValue, String defaultValue) {
 		String value = servletConfig.getInitParameter(name);
 
