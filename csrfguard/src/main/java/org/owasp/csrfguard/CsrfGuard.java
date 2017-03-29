@@ -59,6 +59,7 @@ import org.owasp.csrfguard.util.CsrfGuardUtils;
 import org.owasp.csrfguard.util.RandomGenerator;
 import org.owasp.csrfguard.util.Streams;
 import org.owasp.csrfguard.util.Writers;
+import org.owasp.encoder.Encode;
 
 public final class CsrfGuard {
 
@@ -425,6 +426,7 @@ public final class CsrfGuard {
 		}
 	}
 
+	@SuppressWarnings("findsecbugs:XSS_SERVLET")//html and its placeholder values are generated on server side
 	public void writeLandingPage(HttpServletRequest request, HttpServletResponse response) throws IOException {
 		String landingPage = getNewTokenLandingPage();
 

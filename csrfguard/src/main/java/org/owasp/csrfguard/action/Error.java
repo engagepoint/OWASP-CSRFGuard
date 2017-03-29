@@ -35,12 +35,14 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.owasp.csrfguard.CsrfGuard;
 import org.owasp.csrfguard.CsrfGuardException;
+import org.owasp.encoder.Encode;
 
 public final class Error extends AbstractAction {
 
 	private static final long serialVersionUID = 5479074081984904252L;
 
 	@Override
+	@SuppressWarnings("findsecbugs:XSS_SERVLET")//message is generated on server side
 	public void execute(HttpServletRequest request, HttpServletResponse response, CsrfGuardException csrfe, CsrfGuard csrfGuard) throws CsrfGuardException {
 		int code = Integer.parseInt(getParameter("Code"));
 		String message = getParameter("Message");

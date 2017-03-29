@@ -50,6 +50,7 @@ import org.owasp.csrfguard.util.CsrfGuardUtils;
 import org.owasp.csrfguard.util.Streams;
 import org.owasp.csrfguard.util.Strings;
 import org.owasp.csrfguard.util.Writers;
+import org.owasp.encoder.Encode;
 
 public final class JavaScriptServlet extends HttpServlet {
 
@@ -162,6 +163,7 @@ public final class JavaScriptServlet extends HttpServlet {
 		}
 	}
 
+	@SuppressWarnings("findsecbugs:XSS_SERVLET")//token_pair is generated on server side
 	private void fetchCsrfToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
 		HttpSession session = request.getSession(true);
 		@SuppressWarnings("unchecked")
@@ -189,7 +191,7 @@ public final class JavaScriptServlet extends HttpServlet {
 		}
 	}
 
-
+	@SuppressWarnings("findsecbugs:XSS_SERVLET")//pageTokensString is generated on server side
 	private void writePageTokens(HttpServletRequest request, HttpServletResponse response) throws IOException {
 		HttpSession session = request.getSession(true);
 		@SuppressWarnings("unchecked")
@@ -216,6 +218,7 @@ public final class JavaScriptServlet extends HttpServlet {
 		}
 	}
 
+	@SuppressWarnings("findsecbugs:XSS_SERVLET")//javascript code is generated on server side
 	private void writeJavaScript(HttpServletRequest request, HttpServletResponse response) throws IOException {
 		HttpSession session = request.getSession(true);
 		CsrfGuard csrfGuard = CsrfGuard.getInstance();
